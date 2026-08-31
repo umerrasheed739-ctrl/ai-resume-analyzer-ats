@@ -14,12 +14,16 @@ export default function ResumeAnalyzer() {
   const [regeneratedCv, setRegeneratedCv] = useState('');
   const [loadingRegen, setLoadingRegen] = useState(false);
   const [regenCount, setRegenCount] = useState(0);
+  const [isPro, setIsPro] = useState(false); // New State to track Pro plan
   const [copied, setCopied] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
 
   useEffect(() => {
     const savedCount = localStorage.getItem('cv_regen_count') || 0;
+    const savedProStatus = localStorage.getItem('is_pro_user') === 'true';
+    
     setRegenCount(parseInt(savedCount));
+    setIsPro(savedProStatus);
   }, []);
 
   const handleSubmit = async (e) => {
@@ -54,7 +58,8 @@ export default function ResumeAnalyzer() {
   };
 
   const handleRegenerateCv = async () => {
-    if (regenCount >= 1) {
+    // Lock only if user is NOT Pro AND limit is reached
+    if (!isPro && regenCount >= 1) {
       alert("Free Limit Reached! Upgrade to Pro for unlimited CV regenerations.");
       setShowStripeModal(true);
       return;
@@ -80,9 +85,13 @@ export default function ResumeAnalyzer() {
       const data = await response.json();
       if (data.success) {
         setRegeneratedCv(data.optimizedBulletPoints);
-        const newCount = regenCount + 1;
-        setRegenCount(newCount);
-        localStorage.setItem('cv_regen_count', newCount.toString());
+        
+        // Count increment tabhi karein agar free user ho
+        if (!isPro) {
+          const newCount = regenCount + 1;
+          setRegenCount(newCount);
+          localStorage.setItem('cv_regen_count', newCount.toString());
+        }
       } else {
         alert('Failed: ' + (data.error || 'Could not generate bullets'));
       }
@@ -103,8 +112,8 @@ export default function ResumeAnalyzer() {
 
   const handlePaymentSuccess = () => {
     alert("Payment Successful! Pro Plan Unlocked.");
-    localStorage.setItem('cv_regen_count', '0');
-    setRegenCount(0);
+    setIsPro(true);
+    localStorage.setItem('is_pro_user', 'true'); // Pro status persist karein
     setShowStripeModal(false);
   };
 
@@ -271,7 +280,7 @@ export default function ResumeAnalyzer() {
               </div>
             )}
 
-            {/* Freemium CV Regeneration Section */}
+            {/* Freemium / Pro CV Regeneration Section */}
             <div className="bg-white p-6 rounded-2xl border border-purple-200 shadow-xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-100 pb-3">
                 <div>
@@ -280,14 +289,17 @@ export default function ResumeAnalyzer() {
                   </h3>
                   <p className="text-xs text-slate-500">Generate high-impact, ATS-optimized bullet points based on missing keywords.</p>
                 </div>
-                {regenCount < 1 && (
-                  <span className="bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full self-start sm:self-auto">
-                    {1 - regenCount} Free Trial Available
-                  </span>
-                )}
+                
+                {/* Dynamic Badge for Pro vs Free Trial */}
+                <span className={`text-xs font-bold px-3 py-1 rounded-full self-start sm:self-auto ${
+                  isPro ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-700'
+                }`}>
+                  {isPro ? '✨ Pro Plan Active (Unlimited)' : `${Math.max(0, 1 - regenCount)} Free Trial Available`}
+                </span>
               </div>
 
-              {regenCount < 1 ? (
+              {/* Show Action Button or Upgrade Prompt */}
+              {isPro || regenCount < 1 ? (
                 <button
                   onClick={handleRegenerateCv}
                   disabled={loadingRegen}
@@ -299,13 +311,13 @@ export default function ResumeAnalyzer() {
                 <div className="bg-purple-50/50 border border-purple-100 p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                   <div>
                     <p className="font-bold text-purple-900 text-xs">🔒 Free Trial Limit Reached</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Upgrade to Pro to reset limit and get unlimited AI CV rewrites.</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Upgrade to Pro to get unlimited AI CV rewrites.</p>
                   </div>
                   <button 
                     onClick={() => setShowStripeModal(true)} 
                     className="bg-purple-600 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-purple-700 transition shrink-0 cursor-pointer"
                   >
-                    Unlock Pro (PKR 500)
+                    Unlock Pro ($2.00)
                   </button>
                 </div>
               )}
