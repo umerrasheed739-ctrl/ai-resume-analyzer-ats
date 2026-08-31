@@ -23,7 +23,7 @@ const upload = multer({ storage: storage });
 // Initialize Gemini Client
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Route 1: Initial Resume & JD Analysis (Native Gemini PDF Reader)
+// Route 1: Initial Resume & JD Analysis
 app.post('/api/analyze', upload.single('resume'), async (req, res) => {
     try {
         const jobDescription = req.body.jobDescription;
@@ -36,7 +36,6 @@ app.post('/api/analyze', upload.single('resume'), async (req, res) => {
             });
         }
 
-        // Convert PDF buffer directly to inline base64 data for Gemini
         const pdfInlineData = {
             inlineData: {
                 data: pdfFile.buffer.toString('base64'),
@@ -71,12 +70,12 @@ Return ONLY a valid JSON object matching this structure:
   }
 }
 `;
-        // Model call mein aap ka tested model name:
-const response = await ai.models.generateContent({
-    model: 'gemini-3.6-flash',
-    contents: [prompt, pdfInlineData],
-    config: { responseMimeType: 'application/json' }
-});
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-3.6-flash',
+            contents: [prompt, pdfInlineData],
+            config: { responseMimeType: 'application/json' }
+        });
 
         const resultJson = JSON.parse(response.text);
 
@@ -120,14 +119,14 @@ Provide 4-5 copy-paste ready bullet points using action verbs and quantified imp
     }
 });
 
-// Route 3: Stripe Payment Intent Endpoint
+// Route 3: Stripe Payment Intent Endpoint (Fixed Currency & Error Catching)
 app.post('/api/create-payment-intent', async (req, res) => {
     try {
-        const { amount } = req.body;
-
+        // Stripe processes amounts in smallest currency units (cents for USD)
+        // 200 cents = $2.00 USD (equivalent to approx 500 PKR)
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: amount || 50000, // 500 PKR
-            currency: 'pkr',
+            amount: 200, 
+            currency: 'usd',
             payment_method_types: ['card'],
         });
 
@@ -136,7 +135,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
             clientSecret: paymentIntent.client_secret,
         });
     } catch (error) {
-        console.error('Stripe Payment Intent Error:', error);
+        console.error('Stripe Payment Intent Error:', error.message);
         res.status(500).json({
             success: false,
             error: error.message,
@@ -144,5 +143,4 @@ app.post('/api/create-payment-intent', async (req, res) => {
     }
 });
 
-// Export default app for Vercel Serverless Function
 export default app;

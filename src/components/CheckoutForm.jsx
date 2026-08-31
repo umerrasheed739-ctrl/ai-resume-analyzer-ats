@@ -14,26 +14,36 @@ export default function CheckoutForm({ onSuccess }) {
     setLoading(true);
     setError(null);
 
-    // 1. Backend se intent secret lein
-    const res = await fetch('https://ai-resume-analyzer-ats-henna.vercel.app/api/create-payment-intent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    const { clientSecret } = await res.json();
+    try {
+      // 1. Backend se intent secret lein
+      const res = await fetch('https://ai-resume-analyzer-ats-henna.vercel.app/api/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
-    // 2. Card details submit karein
-    const result = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: elements.getElement(CardElement),
-      },
-    });
+      const data = await res.json();
 
-    if (result.error) {
-      setError(result.error.message);
-      setLoading(false);
-    } else if (result.paymentIntent.status === 'succeeded') {
-      setLoading(false);
-      onSuccess();
+      if (!res.ok || !data.clientSecret) {
+        throw new Error(data.error || 'Failed to initialize payment gateway.');
+      }
+
+      // 2. Card details submit karein
+      const result = await stripe.confirmCardPayment(data.clientSecret, {
+        payment_method: {
+          card: elements.getElement(CardElement),
+        },
+      });
+
+      if (result.error) {
+        setError(result.error.message);
+      } else if (result.paymentIntent.status === 'succeeded') {
+        onSuccess();
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Payment processing error. Please try again.');
+    } finally {
+      setLoading(false); // Har haal mein processing stop hogi
     }
   };
 
@@ -47,9 +57,9 @@ export default function CheckoutForm({ onSuccess }) {
       <button
         type="submit"
         disabled={!stripe || loading}
-        className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2.5 rounded-lg transition disabled:bg-slate-300"
+        className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2.5 rounded-lg transition disabled:bg-slate-300 cursor-pointer"
       >
-        {loading ? 'Processing...' : 'Pay PKR 500'}
+        {loading ? 'Processing...' : 'Pay $2.00 (Pro Unlock)'}
       </button>
     </form>
   );
