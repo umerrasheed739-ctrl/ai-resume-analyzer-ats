@@ -3,8 +3,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import CheckoutForm from './CheckoutForm';
 
-// Stripe Publishable Key Replace Karein (e.g., pk_test_...Vr39)
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
 export default function ResumeAnalyzer() {
   const [file, setFile] = useState(null);
   const [jobDescription, setJobDescription] = useState('');
@@ -56,6 +56,12 @@ export default function ResumeAnalyzer() {
   const handleRegenerateCv = async () => {
     if (regenCount >= 1) {
       alert("Free Limit Reached! Upgrade to Pro for unlimited CV regenerations.");
+      setShowStripeModal(true);
+      return;
+    }
+
+    if (!result || !result.missingSkills) {
+      alert("Please run analysis first!");
       return;
     }
 
@@ -66,8 +72,8 @@ export default function ResumeAnalyzer() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          missingSkills: result.missingSkills,
-          improvementAdvice: result.improvementAdvice,
+          missingSkills: result.missingSkills || [],
+          improvementAdvice: result.improvementAdvice || [],
         }),
       });
 
@@ -76,10 +82,13 @@ export default function ResumeAnalyzer() {
         setRegeneratedCv(data.optimizedBulletPoints);
         const newCount = regenCount + 1;
         setRegenCount(newCount);
-        localStorage.setItem('cv_regen_count', newCount);
+        localStorage.setItem('cv_regen_count', newCount.toString());
+      } else {
+        alert('Failed: ' + (data.error || 'Could not generate bullets'));
       }
     } catch (err) {
-      alert('Failed to regenerate CV.');
+      console.error(err);
+      alert('Failed to regenerate CV bullets.');
     } finally {
       setLoadingRegen(false);
     }
@@ -237,8 +246,6 @@ export default function ResumeAnalyzer() {
                   Job Requirements Evaluation
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                  
-                  {/* Required Experience */}
                   <div className="flex flex-col justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 gap-1">
                     <span className="text-slate-500 text-[11px] font-medium">Required Experience</span>
                     <span className="font-bold text-slate-900 text-xs">
@@ -246,7 +253,6 @@ export default function ResumeAnalyzer() {
                     </span>
                   </div>
 
-                  {/* Candidate Experience */}
                   <div className="flex flex-col justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 gap-1">
                     <span className="text-slate-500 text-[11px] font-medium">Your Experience</span>
                     <span className={`font-bold text-xs ${result.requirementsCheck.experienceMatch ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -255,14 +261,12 @@ export default function ResumeAnalyzer() {
                     </span>
                   </div>
 
-                  {/* Degree Check */}
                   <div className="flex flex-col justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 gap-1">
                     <span className="text-slate-500 text-[11px] font-medium">Degree Requirement</span>
                     <span className="font-bold text-slate-900 text-xs leading-snug break-words">
                       {result.requirementsCheck.requiredDegree || "Not Specified"}
                     </span>
                   </div>
-
                 </div>
               </div>
             )}
@@ -278,7 +282,7 @@ export default function ResumeAnalyzer() {
                 </div>
                 {regenCount < 1 && (
                   <span className="bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full self-start sm:self-auto">
-                    {1 - regenCount} Free Trials Available
+                    {1 - regenCount} Free Trial Available
                   </span>
                 )}
               </div>
@@ -287,7 +291,7 @@ export default function ResumeAnalyzer() {
                 <button
                   onClick={handleRegenerateCv}
                   disabled={loadingRegen}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-5 rounded-xl transition shadow-xs text-xs cursor-pointer"
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-5 rounded-xl transition shadow-xs text-xs cursor-pointer disabled:bg-slate-300"
                 >
                   {loadingRegen ? 'Generating Tailored Bullet Points...' : 'Regenerate Tailored Bullet Points'}
                 </button>
@@ -324,7 +328,7 @@ export default function ResumeAnalyzer() {
                 </div>
               )}
 
-              {/* Enhanced Display Box for Clean Bullet Points Rendering */}
+              {/* Display Box for Clean Bullet Points Rendering */}
               {regeneratedCv && (
                 <div className="mt-4 space-y-2">
                   <div className="flex justify-between items-center">
