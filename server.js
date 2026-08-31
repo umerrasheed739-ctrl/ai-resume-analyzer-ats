@@ -11,7 +11,6 @@ dotenv.config();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
-const port = process.env.PORT || 3000;
 
 // Middlewares
 app.use(cors());
@@ -72,11 +71,12 @@ Return ONLY a valid JSON object matching this structure:
   }
 }
 `;
-        const response = await ai.models.generateContent({
-            model: 'gemini-3.6-flash',
-            contents: [prompt, pdfInlineData],
-            config: { responseMimeType: 'application/json' }
-        });
+        // Model call mein aap ka tested model name:
+const response = await ai.models.generateContent({
+    model: 'gemini-3.6-flash',
+    contents: [prompt, pdfInlineData],
+    config: { responseMimeType: 'application/json' }
+});
 
         const resultJson = JSON.parse(response.text);
 
@@ -97,15 +97,15 @@ app.post('/api/regenerate-cv', async (req, res) => {
         const { missingSkills, improvementAdvice } = req.body;
 
         const prompt = `
-        Rewrite high-impact, ATS-friendly resume bullet points for a developer.
-        Incorporate these missing skills: ${missingSkills ? missingSkills.join(', ') : 'N/A'}.
-        Apply these improvements: ${improvementAdvice ? improvementAdvice.join(', ') : 'N/A'}.
-        
-        Provide 4-5 copy-paste ready bullet points using action verbs and quantified impact.
-        `;
+Rewrite high-impact, ATS-friendly resume bullet points for a developer.
+Incorporate these missing skills: ${missingSkills ? missingSkills.join(', ') : 'N/A'}.
+Apply these improvements: ${improvementAdvice ? improvementAdvice.join(', ') : 'N/A'}.
+
+Provide 4-5 copy-paste ready bullet points using action verbs and quantified impact.
+`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-3.6-flash',
+            model: 'gemini-2.5-flash',
             contents: prompt
         });
 
@@ -126,7 +126,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
         const { amount } = req.body;
 
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: amount || 50000, // 500 PKR (Stripe calculates in sub-units, e.g. 50000 = PKR 500.00)
+            amount: amount || 50000, // 500 PKR
             currency: 'pkr',
             payment_method_types: ['card'],
         });
@@ -144,6 +144,5 @@ app.post('/api/create-payment-intent', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Express server running on http://localhost:${port}`);
-});
+// Export default app for Vercel Serverless Function
+export default app;

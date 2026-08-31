@@ -15,7 +15,7 @@ export default function CheckoutForm({ onSuccess }) {
     setError(null);
 
     // 1. Backend se intent secret lein
-    const res = await fetch('http://localhost:3000/api/create-payment-intent', {
+    const res = await fetch('https://ai-resume-analyzer-ats-henna.vercel.app/api/create-payment-intent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });

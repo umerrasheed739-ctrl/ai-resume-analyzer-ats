@@ -35,7 +35,7 @@ export default function ResumeAnalyzer() {
     formData.append('jobDescription', jobDescription);
 
     try {
-      const response = await fetch('http://localhost:3000/api/analyze', {
+      const response = await fetch('https://ai-resume-analyzer-ats-henna.vercel.app/api/analyze', {
         method: 'POST',
         body: formData,
       });
@@ -62,7 +62,7 @@ export default function ResumeAnalyzer() {
     setLoadingRegen(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/regenerate-cv', {
+      const response = await fetch('https://ai-resume-analyzer-ats-henna.vercel.app/api/regenerate-cv', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
