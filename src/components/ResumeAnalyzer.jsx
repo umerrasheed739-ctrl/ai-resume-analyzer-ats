@@ -54,7 +54,7 @@ export default function ResumeAnalyzer() {
   };
 
   const handleRegenerateCv = async () => {
-    if (regenCount >= 5) {
+    if (regenCount >= 1) {
       alert("Free Limit Reached! Upgrade to Pro for unlimited CV regenerations.");
       return;
     }
@@ -276,14 +276,14 @@ export default function ResumeAnalyzer() {
                   </h3>
                   <p className="text-xs text-slate-500">Generate high-impact, ATS-optimized bullet points based on missing keywords.</p>
                 </div>
-                {regenCount < 5 && (
+                {regenCount < 1 && (
                   <span className="bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full self-start sm:self-auto">
-                    {5 - regenCount} Free Trials Available
+                    {1 - regenCount} Free Trials Available
                   </span>
                 )}
               </div>
 
-              {regenCount < 5 ? (
+              {regenCount < 1 ? (
                 <button
                   onClick={handleRegenerateCv}
                   disabled={loadingRegen}
