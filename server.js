@@ -23,6 +23,28 @@ const upload = multer({ storage: storage });
 // Initialize Gemini Client
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+// Helper function for automatic model fallback (503 / High Load handling)
+async function generateWithFallback(prompt, inlineData = null) {
+  const models = ['gemini-3.6-flash', 'gemini-2.5-flash'];
+  
+  for (const modelName of models) {
+    try {
+      const contents = inlineData ? [prompt, inlineData] : prompt;
+      const config = inlineData ? { responseMimeType: 'application/json' } : {};
+      
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: contents,
+        config: config
+      });
+      return response;
+    } catch (error) {
+      console.warn(`Model ${modelName} failed or busy. Trying fallback... Error:`, error.message);
+    }
+  }
+  throw new Error("Gemini AI service is currently busy. Please try again in a few seconds.");
+}
+
 // Route 1: Initial Resume & JD Analysis
 app.post('/api/analyze', upload.single('resume'), async (req, res) => {
     try {
@@ -71,12 +93,7 @@ Return ONLY a valid JSON object matching this structure:
 }
 `;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-3.6-flash',
-            contents: [prompt, pdfInlineData],
-            config: { responseMimeType: 'application/json' }
-        });
-
+        const response = await generateWithFallback(prompt, pdfInlineData);
         const resultJson = JSON.parse(response.text);
 
         res.json({
@@ -103,10 +120,7 @@ Apply these improvements: ${improvementAdvice ? improvementAdvice.join(', ') : '
 Provide 4-5 copy-paste ready bullet points using action verbs and quantified impact.
 `;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-3.6-flash',
-            contents: prompt
-        });
+        const response = await generateWithFallback(prompt);
 
         res.json({
             success: true,
@@ -122,7 +136,6 @@ Provide 4-5 copy-paste ready bullet points using action verbs and quantified imp
 // Route 3: Stripe Payment Intent Endpoint (Fixed Currency & Error Catching)
 app.post('/api/create-payment-intent', async (req, res) => {
     try {
-        // Stripe processes amounts in smallest currency units (cents for USD)
         // 200 cents = $2.00 USD (equivalent to approx 500 PKR)
         const paymentIntent = await stripe.paymentIntents.create({
             amount: 200, 
