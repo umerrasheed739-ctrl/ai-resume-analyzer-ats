@@ -14,16 +14,27 @@ export default function ResumeAnalyzer() {
   const [regeneratedCv, setRegeneratedCv] = useState('');
   const [loadingRegen, setLoadingRegen] = useState(false);
   const [regenCount, setRegenCount] = useState(0);
-  const [isPro, setIsPro] = useState(false); // New State to track Pro plan
+  const [isPro, setIsPro] = useState(false); // Pro plan tracking for CV Rewriter
   const [copied, setCopied] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
+
+  // States for AI Mock Interview Freemium Limit & Payment
+  const [mockInterviewCount, setMockInterviewCount] = useState(0);
+  const [isMockPro, setIsMockPro] = useState(false);
+  const [showMockStripeModal, setShowMockStripeModal] = useState(false);
 
   useEffect(() => {
     const savedCount = localStorage.getItem('cv_regen_count') || 0;
     const savedProStatus = localStorage.getItem('is_pro_user') === 'true';
     
+    const savedMockCount = localStorage.getItem('mock_interview_count') || 0;
+    const savedMockProStatus = localStorage.getItem('is_mock_pro_user') === 'true';
+    
     setRegenCount(parseInt(savedCount));
     setIsPro(savedProStatus);
+
+    setMockInterviewCount(parseInt(savedMockCount));
+    setIsMockPro(savedMockProStatus);
   }, []);
 
   const handleSubmit = async (e) => {
@@ -58,7 +69,6 @@ export default function ResumeAnalyzer() {
   };
 
   const handleRegenerateCv = async () => {
-    // Lock only if user is NOT Pro AND limit is reached
     if (!isPro && regenCount >= 1) {
       alert("Free Limit Reached! Upgrade to Pro for unlimited CV regenerations.");
       setShowStripeModal(true);
@@ -86,7 +96,6 @@ export default function ResumeAnalyzer() {
       if (data.success) {
         setRegeneratedCv(data.optimizedBulletPoints);
         
-        // Count increment tabhi karein agar free user ho
         if (!isPro) {
           const newCount = regenCount + 1;
           setRegenCount(newCount);
@@ -113,8 +122,32 @@ export default function ResumeAnalyzer() {
   const handlePaymentSuccess = () => {
     alert("Payment Successful! Pro Plan Unlocked.");
     setIsPro(true);
-    localStorage.setItem('is_pro_user', 'true'); // Pro status persist karein
+    localStorage.setItem('is_pro_user', 'true');
     setShowStripeModal(false);
+  };
+
+  // Handlers for Mock Interview Limit and Payment
+  const handleStartMockInterview = () => {
+    if (!isMockPro && mockInterviewCount >= 1) {
+      setShowMockStripeModal(true);
+      return;
+    }
+
+    if (!isMockPro) {
+      const newCount = mockInterviewCount + 1;
+      setMockInterviewCount(newCount);
+      localStorage.setItem('mock_interview_count', newCount.toString());
+    }
+
+    window.open('https://ai-mock-interview-frontend-six.vercel.app/', '_blank');
+  };
+
+  const handleMockPaymentSuccess = () => {
+    alert("Payment Successful! Mock Interview Pro Unlocked.");
+    setIsMockPro(true);
+    localStorage.setItem('is_mock_pro_user', 'true');
+    setShowMockStripeModal(false);
+    window.open('https://ai-mock-interview-frontend-six.vercel.app/', '_blank');
   };
 
   return (
@@ -290,7 +323,6 @@ export default function ResumeAnalyzer() {
                   <p className="text-xs text-slate-500">Generate high-impact, ATS-optimized bullet points based on missing keywords.</p>
                 </div>
                 
-                {/* Dynamic Badge for Pro vs Free Trial */}
                 <span className={`text-xs font-bold px-3 py-1 rounded-full self-start sm:self-auto ${
                   isPro ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-700'
                 }`}>
@@ -298,7 +330,6 @@ export default function ResumeAnalyzer() {
                 </span>
               </div>
 
-              {/* Show Action Button or Upgrade Prompt */}
               {isPro || regenCount < 1 ? (
                 <button
                   onClick={handleRegenerateCv}
@@ -322,7 +353,6 @@ export default function ResumeAnalyzer() {
                 </div>
               )}
 
-              {/* Stripe Payment Modal */}
               {showStripeModal && (
                 <div className="mt-4 p-4 border border-purple-200 rounded-xl bg-slate-50 space-y-3">
                   <div className="flex justify-between items-center border-b pb-2">
@@ -340,7 +370,6 @@ export default function ResumeAnalyzer() {
                 </div>
               )}
 
-              {/* Display Box for Clean Bullet Points Rendering */}
               {regeneratedCv && (
                 <div className="mt-4 space-y-2">
                   <div className="flex justify-between items-center">
@@ -358,20 +387,42 @@ export default function ResumeAnalyzer() {
                 </div>
               )}
             </div>
-            {/* Start AI Mock Interview Button */}
-            <div className="mt-6 pt-4 border-t border-purple-100 flex flex-col sm:flex-row items-center justify-between gap-3 bg-blue-50/40 p-4 rounded-xl border border-blue-100">
-              <div>
-                <h4 className="font-bold text-blue-950 text-xs flex items-center gap-1.5">
-                  <span>🎯</span> Ready to test your skills for this role?
-                </h4>
-                <p className="text-xs text-slate-500 mt-0.5">Start a real-time AI mock interview customized for this job description.</p>
+
+            {/* AI Mock Interview Section with Freemium Limit & Stripe Modal */}
+            <div className="mt-6 pt-4 border-t border-purple-100 space-y-3 bg-blue-50/40 p-4 rounded-xl border border-blue-100">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div>
+                  <h4 className="font-bold text-blue-950 text-xs flex items-center gap-1.5">
+                    <span>🎯</span> Ready to test your skills for this role?
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {isMockPro ? '✨ Pro Plan Active (Unlimited Interviews)' : `${Math.max(0, 1 - mockInterviewCount)} Free Mock Interview Trial Available`}
+                  </p>
+                </div>
+                <button
+                  onClick={handleStartMockInterview}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-xs shrink-0 cursor-pointer flex items-center gap-2"
+                >
+                  <span>🎤</span> {isMockPro || mockInterviewCount < 1 ? 'Start AI Mock Interview' : 'Unlock Pro ($2.00)'}
+                </button>
               </div>
-              <button
-                onClick={() => window.open('https://ai-mock-interview-frontend-six.vercel.app/', '_blank')}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-xs shrink-0 cursor-pointer flex items-center gap-2"
-              >
-                <span>🎤</span> Start AI Mock Interview
-              </button>
+
+              {showMockStripeModal && (
+                <div className="mt-4 p-4 border border-blue-200 rounded-xl bg-slate-50 space-y-3">
+                  <div className="flex justify-between items-center border-b pb-2">
+                    <h4 className="font-bold text-xs text-slate-800">Unlock Unlimited AI Mock Interviews ($2.00)</h4>
+                    <button 
+                      onClick={() => setShowMockStripeModal(false)}
+                      className="text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer"
+                    >
+                      ✕ Close
+                    </button>
+                  </div>
+                  <Elements stripe={stripePromise}>
+                    <CheckoutForm onSuccess={handleMockPaymentSuccess} />
+                  </Elements>
+                </div>
+              )}
             </div>
 
           </div>
