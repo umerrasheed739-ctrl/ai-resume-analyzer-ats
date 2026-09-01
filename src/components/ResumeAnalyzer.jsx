@@ -358,6 +358,21 @@ export default function ResumeAnalyzer() {
                 </div>
               )}
             </div>
+            {/* Start AI Mock Interview Button */}
+            <div className="mt-6 pt-4 border-t border-purple-100 flex flex-col sm:flex-row items-center justify-between gap-3 bg-blue-50/40 p-4 rounded-xl border border-blue-100">
+              <div>
+                <h4 className="font-bold text-blue-950 text-xs flex items-center gap-1.5">
+                  <span>🎯</span> Ready to test your skills for this role?
+                </h4>
+                <p className="text-xs text-slate-500 mt-0.5">Start a real-time AI mock interview customized for this job description.</p>
+              </div>
+              <button
+                onClick={() => window.open('https://ai-mock-interview-frontend-six.vercel.app/', '_blank')}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-xs shrink-0 cursor-pointer flex items-center gap-2"
+              >
+                <span>🎤</span> Start AI Mock Interview
+              </button>
+            </div>
 
           </div>
         )}
