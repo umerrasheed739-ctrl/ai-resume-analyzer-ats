@@ -38,23 +38,24 @@ export default function ResumeAnalyzer() {
     setMockInterviewCount(parseInt(savedMockCount));
     setIsMockPro(savedMockProStatus);
 
-    // Fetch live jobs on component mount
-    fetchLiveJobs("Software Engineer Pakistan");
+    // Fetch live jobs without needing any keys
+    fetchLiveJobs();
   }, []);
 
-  const fetchLiveJobs = async (query = "Full Stack Developer Pakistan") => {
+ const fetchLiveJobs = async () => {
     setLoadingJobs(true);
     try {
-      const response = await fetch(`https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(query)}&page=1&num_pages=1`, {
-        method: 'GET',
-        headers: {
-          'X-RapidAPI-Key': import.meta.env.VITE_RAPID_API_KEY,
-          'X-RapidAPI-Host': import.meta.env.VITE_RAPID_API_HOST
-        }
-      });
+      const response = await fetch('https://www.arbeitnow.com/api/job-board-api');
       const data = await response.json();
       if (data && data.data) {
-        setLiveJobs(data.data);
+        // Mapping free API fields to match your UI structure
+        const formattedJobs = data.data.slice(0, 15).map(job => ({
+          job_title: job.title,
+          employer_name: job.company_name,
+          job_description: job.description.replace(/<[^>]*>?/gm, ''), // Strip HTML tags for clean text
+          job_country: job.location || 'Remote'
+        }));
+        setLiveJobs(formattedJobs);
       }
     } catch (error) {
       console.error("Failed to fetch live jobs:", error);
