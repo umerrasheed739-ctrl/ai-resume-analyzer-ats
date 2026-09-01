@@ -14,7 +14,7 @@ export default function ResumeAnalyzer() {
   const [regeneratedCv, setRegeneratedCv] = useState('');
   const [loadingRegen, setLoadingRegen] = useState(false);
   const [regenCount, setRegenCount] = useState(0);
-  const [isPro, setIsPro] = useState(false); // Pro plan tracking for CV Rewriter
+  const [isPro, setIsPro] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showStripeModal, setShowStripeModal] = useState(false);
 
@@ -23,24 +23,50 @@ export default function ResumeAnalyzer() {
   const [isMockPro, setIsMockPro] = useState(false);
   const [showMockStripeModal, setShowMockStripeModal] = useState(false);
 
+  // States for Live Jobs Sidebar via JSearch API
+  const [liveJobs, setLiveJobs] = useState([]);
+  const [loadingJobs, setLoadingJobs] = useState(false);
+
   useEffect(() => {
     const savedCount = localStorage.getItem('cv_regen_count') || 0;
     const savedProStatus = localStorage.getItem('is_pro_user') === 'true';
-    
     const savedMockCount = localStorage.getItem('mock_interview_count') || 0;
     const savedMockProStatus = localStorage.getItem('is_mock_pro_user') === 'true';
     
     setRegenCount(parseInt(savedCount));
     setIsPro(savedProStatus);
-
     setMockInterviewCount(parseInt(savedMockCount));
     setIsMockPro(savedMockProStatus);
+
+    // Fetch live jobs on component mount
+    fetchLiveJobs("Software Engineer Pakistan");
   }, []);
+
+  const fetchLiveJobs = async (query = "Full Stack Developer Pakistan") => {
+    setLoadingJobs(true);
+    try {
+      const response = await fetch(`https://jsearch.p.rapidapi.com/search?query=${encodeURIComponent(query)}&page=1&num_pages=1`, {
+        method: 'GET',
+        headers: {
+          'X-RapidAPI-Key': import.meta.env.VITE_RAPID_API_KEY,
+          'X-RapidAPI-Host': import.meta.env.VITE_RAPID_API_HOST
+        }
+      });
+      const data = await response.json();
+      if (data && data.data) {
+        setLiveJobs(data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch live jobs:", error);
+    } finally {
+      setLoadingJobs(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file || !jobDescription) {
-      alert("Please upload a PDF resume and paste the job description!");
+      alert("Please upload a PDF resume and select/paste the job description!");
       return;
     }
 
@@ -70,7 +96,6 @@ export default function ResumeAnalyzer() {
 
   const handleRegenerateCv = async () => {
     if (!isPro && regenCount >= 1) {
-      alert("Free Limit Reached! Upgrade to Pro for unlimited CV regenerations.");
       setShowStripeModal(true);
       return;
     }
@@ -126,7 +151,6 @@ export default function ResumeAnalyzer() {
     setShowStripeModal(false);
   };
 
-  // Handlers for Mock Interview Limit and Payment
   const handleStartMockInterview = () => {
     if (!isMockPro && mockInterviewCount >= 1) {
       setShowMockStripeModal(true);
@@ -139,7 +163,8 @@ export default function ResumeAnalyzer() {
       localStorage.setItem('mock_interview_count', newCount.toString());
     }
 
-    window.open('https://ai-mock-interview-frontend-six.vercel.app/', '_blank');
+    const encodedJD = encodeURIComponent(jobDescription || '');
+    window.open(`https://ai-mock-interview-frontend-six.vercel.app/?jd=${encodedJD}`, '_blank');
   };
 
   const handleMockPaymentSuccess = () => {
@@ -147,287 +172,262 @@ export default function ResumeAnalyzer() {
     setIsMockPro(true);
     localStorage.setItem('is_mock_pro_user', 'true');
     setShowMockStripeModal(false);
-    window.open('https://ai-mock-interview-frontend-six.vercel.app/', '_blank');
+    
+    const encodedJD = encodeURIComponent(jobDescription || '');
+    window.open(`https://ai-mock-interview-frontend-six.vercel.app/?jd=${encodedJD}`, '_blank');
   };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-6 font-sans">
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
         
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">AI Resume Analyzer</h1>
-          <p className="text-slate-500 text-sm max-w-md mx-auto">Instant ATS matching score, skills gap analysis & AI-powered bullet point generation.</p>
+        {/* SIDEBAR: Live Job Postings from JSearch API */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs h-fit space-y-4 lg:col-span-1">
+          <div className="border-b pb-3">
+            <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+              <span>💼</span> Live Job Postings
+            </h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">Click any job to auto-load its JD.</p>
+          </div>
+
+          {loadingJobs ? (
+            <p className="text-xs text-slate-400 text-center py-6">Loading live market jobs...</p>
+          ) : (
+            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+              {liveJobs.map((job, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => setJobDescription(job.job_description)}
+                  className="p-3 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-blue-50/50 hover:border-blue-200 transition cursor-pointer space-y-1.5"
+                >
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-bold text-xs text-slate-800 line-clamp-1">{job.job_title}</h4>
+                    <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded-md shrink-0">
+                      {job.job_country || 'Remote'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium">{job.employer_name}</p>
+                  <p className="text-[10px] text-slate-400 line-clamp-2 leading-relaxed">{job.job_description}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Form Inputs */}
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex flex-col">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1.5">Step 1</span>
-            <h3 className="font-semibold text-slate-800 mb-2">Upload Resume (PDF)</h3>
-            <div className="border-2 border-dashed border-slate-200 hover:border-blue-400 transition-colors rounded-xl p-6 text-center bg-slate-50/50 flex-1 flex flex-col justify-center items-center">
-              <input 
-                type="file" 
-                accept=".pdf" 
-                id="pdfUpload"
-                onChange={(e) => setFile(e.target.files[0])} 
-                className="hidden" 
-              />
-              <label htmlFor="pdfUpload" className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-medium text-sm cursor-pointer hover:bg-slate-50 shadow-xs transition">
-                Select PDF File
-              </label>
-              <p className="text-xs text-slate-400 mt-2 font-medium">{file ? file.name : "No file chosen"}</p>
-            </div>
+        {/* MAIN CONTENT AREA */}
+        <div className="lg:col-span-3 space-y-8">
+          
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">AI Resume Analyzer & Job Matcher</h1>
+            <p className="text-slate-500 text-sm max-w-md mx-auto">Instant ATS matching score, live market jobs & AI-powered bullet generator.</p>
           </div>
 
-          <div className="flex flex-col">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1.5">Step 2</span>
-            <h3 className="font-semibold text-slate-800 mb-2">Paste Job Description</h3>
-            <textarea 
-              rows="6"
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              placeholder="Paste job details..."
-              className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-hidden flex-1 resize-none text-xs text-slate-700 leading-relaxed placeholder:text-slate-400"
-            ></textarea>
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="md:col-span-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition shadow-xs disabled:bg-slate-300 text-sm cursor-pointer"
-          >
-            {loading ? 'Analyzing Resume with AI...' : 'Start AI Analysis'}
-          </button>
-        </form>
-
-        {/* Dashboard Results Section */}
-        {result && (
-          <div className="space-y-6 animate-fadeIn">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h2 className="text-xl font-bold text-slate-900">Analysis Breakdown</h2>
-              <span className="text-xs bg-slate-200 text-slate-700 font-medium px-2.5 py-1 rounded-full">Report Ready</span>
+          <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1.5">Step 1</span>
+              <h3 className="font-semibold text-slate-800 mb-2">Upload Resume (PDF)</h3>
+              <div className="border-2 border-dashed border-slate-200 hover:border-blue-400 transition-colors rounded-xl p-6 text-center bg-slate-50/50 flex-1 flex flex-col justify-center items-center">
+                <input 
+                  type="file" 
+                  accept=".pdf" 
+                  id="pdfUpload"
+                  onChange={(e) => setFile(e.target.files[0])} 
+                  className="hidden" 
+                />
+                <label htmlFor="pdfUpload" className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-medium text-sm cursor-pointer hover:bg-slate-50 shadow-xs transition">
+                  Select PDF File
+                </label>
+                <p className="text-xs text-slate-400 mt-2 font-medium">{file ? file.name : "No file chosen"}</p>
+              </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5 items-start">
+
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1.5">Step 2</span>
+              <h3 className="font-semibold text-slate-800 mb-2">Job Description</h3>
+              <textarea 
+                rows="6"
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                placeholder="Click any job from the sidebar or paste job description here..."
+                className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-hidden flex-1 resize-none text-xs text-slate-700 leading-relaxed placeholder:text-slate-400"
+              ></textarea>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="md:col-span-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition shadow-xs disabled:bg-slate-300 text-sm cursor-pointer"
+            >
+              {loading ? 'Analyzing Resume with AI...' : 'Start AI Analysis'}
+            </button>
+          </form>
+
+          {/* Results Section */}
+          {result && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <h2 className="text-xl font-bold text-slate-900">Analysis Breakdown</h2>
+                <span className="text-xs bg-slate-200 text-slate-700 font-medium px-2.5 py-1 rounded-full">Report Ready</span>
+              </div>
               
-              {/* Box 1: Match Score */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs text-center flex flex-col items-center justify-center min-h-[220px]">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Match Score</span>
-                <div className="relative w-28 h-28 flex items-center justify-center">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                    <path
-                      className="text-slate-100"
-                      strokeWidth="3.5"
-                      stroke="currentColor"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                    <path
-                      className="text-blue-600 transition-all duration-1000 stroke-current"
-                      strokeDasharray={`${result.matchPercentage}, 100`}
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                      fill="none"
-                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    />
-                  </svg>
-                  <span className="absolute text-2xl font-extrabold text-slate-900">{result.matchPercentage}%</span>
-                </div>
-              </div>
-
-              {/* Box 2: Matched Skills */}
-              <div className="bg-white border border-slate-200/80 border-t-4 border-t-emerald-500 p-5 rounded-2xl shadow-xs space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Matched Skills</h4>
-                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{result.matchedSkills?.length || 0}</span>
-                </div>
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {result.matchedSkills?.map((skill, idx) => (
-                    <span key={idx} className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-xs px-2.5 py-1 rounded-md font-medium">
-                      ✓ {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Box 3: Missing Keywords */}
-              <div className="bg-white border border-slate-200/80 border-t-4 border-t-rose-500 p-5 rounded-2xl shadow-xs space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Missing Keywords</h4>
-                  <span className="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{result.missingSkills?.length || 0}</span>
-                </div>
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {result.missingSkills?.map((skill, idx) => (
-                    <span key={idx} className="bg-rose-50 text-rose-700 border border-rose-200/60 text-xs px-2.5 py-1 rounded-md font-medium">
-                      ✕ {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Box 4: Key Improvements */}
-              <div className="bg-white border border-slate-200/80 border-t-4 border-t-amber-500 p-5 rounded-2xl shadow-xs space-y-3">
-                <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Key Improvements</h4>
-                <ul className="text-xs text-slate-600 space-y-2 leading-relaxed">
-                  {result.improvementAdvice?.map((advice, idx) => (
-                    <li key={idx} className="flex items-start gap-2 bg-amber-50/50 p-2 rounded-lg border border-amber-100">
-                      <span className="text-amber-500 shrink-0 mt-0.5">💡</span>
-                      <span>{advice}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-            </div>
-
-            {/* Dynamic Box 5: Job Requirements Check */}
-            {result.requirementsCheck && (
-              <div className="bg-white border border-slate-200/80 border-t-4 border-t-indigo-500 p-5 rounded-2xl shadow-xs space-y-3">
-                <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
-                  Job Requirements Evaluation
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                  <div className="flex flex-col justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 gap-1">
-                    <span className="text-slate-500 text-[11px] font-medium">Required Experience</span>
-                    <span className="font-bold text-slate-900 text-xs">
-                      {result.requirementsCheck.requiredExperience || "Not Specified"}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 gap-1">
-                    <span className="text-slate-500 text-[11px] font-medium">Your Experience</span>
-                    <span className={`font-bold text-xs ${result.requirementsCheck.experienceMatch ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {result.requirementsCheck.experienceMatch ? '✓ ' : '✕ '}
-                      {result.requirementsCheck.candidateExperience || "0 Years"}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 gap-1">
-                    <span className="text-slate-500 text-[11px] font-medium">Degree Requirement</span>
-                    <span className="font-bold text-slate-900 text-xs leading-snug break-words">
-                      {result.requirementsCheck.requiredDegree || "Not Specified"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Freemium / Pro CV Regeneration Section */}
-            <div className="bg-white p-6 rounded-2xl border border-purple-200 shadow-xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-100 pb-3">
-                <div>
-                  <h3 className="text-base font-bold text-purple-950 flex items-center gap-2">
-                    <span>✨</span> AI CV Auto-Rewriter
-                  </h3>
-                  <p className="text-xs text-slate-500">Generate high-impact, ATS-optimized bullet points based on missing keywords.</p>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-5 items-start">
                 
-                <span className={`text-xs font-bold px-3 py-1 rounded-full self-start sm:self-auto ${
-                  isPro ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-700'
-                }`}>
-                  {isPro ? '✨ Pro Plan Active (Unlimited)' : `${Math.max(0, 1 - regenCount)} Free Trial Available`}
-                </span>
+                {/* Match Score */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs text-center flex flex-col items-center justify-center min-h-[220px]">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Match Score</span>
+                  <div className="relative w-28 h-28 flex items-center justify-center">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                      <path className="text-slate-100" strokeWidth="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <path className="text-blue-600 transition-all duration-1000 stroke-current" strokeDasharray={`${result.matchPercentage}, 100`} strokeWidth="3.5" strokeLinecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <span className="absolute text-2xl font-extrabold text-slate-900">{result.matchPercentage}%</span>
+                  </div>
+                </div>
+
+                {/* Matched Skills */}
+                <div className="bg-white border border-slate-200 border-t-4 border-t-emerald-500 p-5 rounded-2xl shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Matched Skills</h4>
+                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{result.matchedSkills?.length || 0}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {result.matchedSkills?.map((skill, idx) => (
+                      <span key={idx} className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-xs px-2.5 py-1 rounded-md font-medium">✓ {skill}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Missing Keywords */}
+                <div className="bg-white border border-slate-200 border-t-4 border-t-rose-500 p-5 rounded-2xl shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Missing Keywords</h4>
+                    <span className="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{result.missingSkills?.length || 0}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {result.missingSkills?.map((skill, idx) => (
+                      <span key={idx} className="bg-rose-50 text-rose-700 border border-rose-200/60 text-xs px-2.5 py-1 rounded-md font-medium">✕ {skill}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Key Improvements */}
+                <div className="bg-white border border-slate-200 border-t-4 border-t-amber-500 p-5 rounded-2xl shadow-xs space-y-3">
+                  <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Key Improvements</h4>
+                  <ul className="text-xs text-slate-600 space-y-2 leading-relaxed">
+                    {result.improvementAdvice?.map((advice, idx) => (
+                      <li key={idx} className="flex items-start gap-2 bg-amber-50/50 p-2 rounded-lg border border-amber-100">
+                        <span className="text-amber-500 shrink-0 mt-0.5">💡</span>
+                        <span>{advice}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
               </div>
 
-              {isPro || regenCount < 1 ? (
-                <button
-                  onClick={handleRegenerateCv}
-                  disabled={loadingRegen}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-5 rounded-xl transition shadow-xs text-xs cursor-pointer disabled:bg-slate-300"
-                >
-                  {loadingRegen ? 'Generating Tailored Bullet Points...' : 'Regenerate Tailored Bullet Points'}
-                </button>
-              ) : (
-                <div className="bg-purple-50/50 border border-purple-100 p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+              {/* CV Rewriter Section */}
+              <div className="bg-white p-6 rounded-2xl border border-purple-200 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-100 pb-3">
                   <div>
-                    <p className="font-bold text-purple-900 text-xs">🔒 Free Trial Limit Reached</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Upgrade to Pro to get unlimited AI CV rewrites.</p>
+                    <h3 className="text-base font-bold text-purple-950 flex items-center gap-2">
+                      <span>✨</span> AI CV Auto-Rewriter
+                    </h3>
+                    <p className="text-xs text-slate-500">Generate high-impact, ATS-optimized bullet points based on missing keywords.</p>
                   </div>
-                  <button 
-                    onClick={() => setShowStripeModal(true)} 
-                    className="bg-purple-600 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-purple-700 transition shrink-0 cursor-pointer"
+                  
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full self-start sm:self-auto ${
+                    isPro ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-700'
+                  }`}>
+                    {isPro ? '✨ Pro Plan Active (Unlimited)' : `${Math.max(0, 1 - regenCount)} Free Trial Available`}
+                  </span>
+                </div>
+
+                {isPro || regenCount < 1 ? (
+                  <button
+                    onClick={handleRegenerateCv}
+                    disabled={loadingRegen}
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2.5 px-5 rounded-xl transition shadow-xs text-xs cursor-pointer disabled:bg-slate-300"
                   >
-                    Unlock Pro ($2.00)
+                    {loadingRegen ? 'Generating Tailored Bullet Points...' : 'Regenerate Tailored Bullet Points'}
+                  </button>
+                ) : (
+                  <div className="bg-purple-50/50 border border-purple-100 p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                    <div>
+                      <p className="font-bold text-purple-900 text-xs">🔒 Free Trial Limit Reached</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Upgrade to Pro to get unlimited AI CV rewrites.</p>
+                    </div>
+                    <button 
+                      onClick={() => setShowStripeModal(true)} 
+                      className="bg-purple-600 text-white font-bold text-xs px-4 py-2 rounded-lg hover:bg-purple-700 transition shrink-0 cursor-pointer"
+                    >
+                      Unlock Pro ($2.00)
+                    </button>
+                  </div>
+                )}
+
+                {showStripeModal && (
+                  <div className="mt-4 p-4 border border-purple-200 rounded-xl bg-slate-50 space-y-3">
+                    <div className="flex justify-between items-center border-b pb-2">
+                      <h4 className="font-bold text-xs text-slate-800">Complete Pro Upgrade Payment</h4>
+                      <button onClick={() => setShowStripeModal(false)} className="text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer">✕ Close</button>
+                    </div>
+                    <Elements stripe={stripePromise}>
+                      <CheckoutForm onSuccess={handlePaymentSuccess} />
+                    </Elements>
+                  </div>
+                )}
+
+                {regeneratedCv && (
+                  <div className="mt-4 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-bold text-slate-800 text-xs">Tailored CV Bullet Points:</h4>
+                      <button onClick={handleCopy} className="text-xs text-purple-600 font-semibold hover:underline flex items-center gap-1 cursor-pointer">
+                        {copied ? '✓ Copied Clean Text!' : '📋 Copy to Clipboard'}
+                      </button>
+                    </div>
+                    <div className="w-full p-4 border border-purple-200 rounded-xl bg-slate-900 text-slate-100 text-xs leading-relaxed max-h-64 overflow-y-auto font-sans whitespace-pre-wrap">
+                      {regeneratedCv.replace(/\*\*/g, '')}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* AI Mock Interview Section */}
+              <div className="mt-6 pt-4 border-t border-purple-100 space-y-3 bg-blue-50/40 p-4 rounded-xl border border-blue-100">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div>
+                    <h4 className="font-bold text-blue-950 text-xs flex items-center gap-1.5">
+                      <span>🎯</span> Ready to test your skills for this role?
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {isMockPro ? '✨ Pro Plan Active (Unlimited Interviews)' : `${Math.max(0, 1 - mockInterviewCount)} Free Mock Interview Trial Available`}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleStartMockInterview}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-xs shrink-0 cursor-pointer flex items-center gap-2"
+                  >
+                    <span>🎤</span> {isMockPro || mockInterviewCount < 1 ? 'Start AI Mock Interview' : 'Unlock Pro ($2.00)'}
                   </button>
                 </div>
-              )}
 
-              {showStripeModal && (
-                <div className="mt-4 p-4 border border-purple-200 rounded-xl bg-slate-50 space-y-3">
-                  <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-xs text-slate-800">Complete Pro Upgrade Payment</h4>
-                    <button 
-                      onClick={() => setShowStripeModal(false)}
-                      className="text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer"
-                    >
-                      ✕ Close
-                    </button>
+                {showMockStripeModal && (
+                  <div className="mt-4 p-4 border border-blue-200 rounded-xl bg-slate-50 space-y-3">
+                    <div className="flex justify-between items-center border-b pb-2">
+                      <h4 className="font-bold text-xs text-slate-800">Unlock Unlimited AI Mock Interviews ($2.00)</h4>
+                      <button onClick={() => setShowMockStripeModal(false)} className="text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer">✕ Close</button>
+                    </div>
+                    <Elements stripe={stripePromise}>
+                      <CheckoutForm onSuccess={handleMockPaymentSuccess} />
+                    </Elements>
                   </div>
-                  <Elements stripe={stripePromise}>
-                    <CheckoutForm onSuccess={handlePaymentSuccess} />
-                  </Elements>
-                </div>
-              )}
-
-              {regeneratedCv && (
-                <div className="mt-4 space-y-2">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-bold text-slate-800 text-xs">Tailored CV Bullet Points:</h4>
-                    <button 
-                      onClick={handleCopy}
-                      className="text-xs text-purple-600 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      {copied ? '✓ Copied Clean Text!' : '📋 Copy to Clipboard'}
-                    </button>
-                  </div>
-                  <div className="w-full p-4 border border-purple-200 rounded-xl bg-slate-900 text-slate-100 text-xs leading-relaxed max-h-64 overflow-y-auto font-sans whitespace-pre-wrap">
-                    {regeneratedCv.replace(/\*\*/g, '')}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* AI Mock Interview Section with Freemium Limit & Stripe Modal */}
-            <div className="mt-6 pt-4 border-t border-purple-100 space-y-3 bg-blue-50/40 p-4 rounded-xl border border-blue-100">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div>
-                  <h4 className="font-bold text-blue-950 text-xs flex items-center gap-1.5">
-                    <span>🎯</span> Ready to test your skills for this role?
-                  </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {isMockPro ? '✨ Pro Plan Active (Unlimited Interviews)' : `${Math.max(0, 1 - mockInterviewCount)} Free Mock Interview Trial Available`}
-                  </p>
-                </div>
-                <button
-                  onClick={handleStartMockInterview}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-xs shrink-0 cursor-pointer flex items-center gap-2"
-                >
-                  <span>🎤</span> {isMockPro || mockInterviewCount < 1 ? 'Start AI Mock Interview' : 'Unlock Pro ($2.00)'}
-                </button>
+                )}
               </div>
 
-              {showMockStripeModal && (
-                <div className="mt-4 p-4 border border-blue-200 rounded-xl bg-slate-50 space-y-3">
-                  <div className="flex justify-between items-center border-b pb-2">
-                    <h4 className="font-bold text-xs text-slate-800">Unlock Unlimited AI Mock Interviews ($2.00)</h4>
-                    <button 
-                      onClick={() => setShowMockStripeModal(false)}
-                      className="text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer"
-                    >
-                      ✕ Close
-                    </button>
-                  </div>
-                  <Elements stripe={stripePromise}>
-                    <CheckoutForm onSuccess={handleMockPaymentSuccess} />
-                  </Elements>
-                </div>
-              )}
             </div>
+          )}
 
-          </div>
-        )}
-
+        </div>
       </div>
     </div>
   );
