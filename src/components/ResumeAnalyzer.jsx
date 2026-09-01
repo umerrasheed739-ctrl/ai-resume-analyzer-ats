@@ -23,7 +23,7 @@ export default function ResumeAnalyzer() {
   const [isMockPro, setIsMockPro] = useState(false);
   const [showMockStripeModal, setShowMockStripeModal] = useState(false);
 
-  // States for Live Jobs Sidebar via JSearch API
+  // States for Live Jobs Sidebar via Arbeitnow API
   const [liveJobs, setLiveJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
 
@@ -38,21 +38,20 @@ export default function ResumeAnalyzer() {
     setMockInterviewCount(parseInt(savedMockCount));
     setIsMockPro(savedMockProStatus);
 
-    // Fetch live jobs without needing any keys
+    // Fetch live jobs
     fetchLiveJobs();
   }, []);
 
- const fetchLiveJobs = async () => {
+  const fetchLiveJobs = async () => {
     setLoadingJobs(true);
     try {
       const response = await fetch('https://www.arbeitnow.com/api/job-board-api');
       const data = await response.json();
       if (data && data.data) {
-        // Mapping free API fields to match your UI structure
         const formattedJobs = data.data.slice(0, 15).map(job => ({
           job_title: job.title,
           employer_name: job.company_name,
-          job_description: job.description.replace(/<[^>]*>?/gm, ''), // Strip HTML tags for clean text
+          job_description: job.description.replace(/<[^>]*>?/gm, ''),
           job_country: job.location || 'Remote'
         }));
         setLiveJobs(formattedJobs);
@@ -182,7 +181,7 @@ export default function ResumeAnalyzer() {
     <div className="min-h-screen bg-slate-50 text-slate-800 p-6 font-sans">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
         
-        {/* SIDEBAR: Live Job Postings from JSearch API */}
+        {/* SIDEBAR: Live Job Postings from Arbeitnow API */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs h-fit space-y-4 lg:col-span-1">
           <div className="border-b pb-3">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
@@ -311,19 +310,34 @@ export default function ResumeAnalyzer() {
                   </div>
                 </div>
 
-                {/* Key Improvements */}
-                <div className="bg-white border border-slate-200 border-t-4 border-t-amber-500 p-5 rounded-2xl shadow-xs space-y-3">
-                  <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Key Improvements</h4>
-                  <ul className="text-xs text-slate-600 space-y-2 leading-relaxed">
-                    {result.improvementAdvice?.map((advice, idx) => (
-                      <li key={idx} className="flex items-start gap-2 bg-amber-50/50 p-2 rounded-lg border border-amber-100">
-                        <span className="text-amber-500 shrink-0 mt-0.5">💡</span>
-                        <span>{advice}</span>
-                      </li>
-                    ))}
-                  </ul>
+                {/* Experience Match & Degree Evaluation */}
+                <div className="bg-white border border-slate-200 border-t-4 border-t-indigo-500 p-5 rounded-2xl shadow-xs space-y-3">
+                  <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Experience & Degree</h4>
+                  <div className="space-y-2 text-xs text-slate-600">
+                    <div className="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100">
+                      <span className="font-semibold text-indigo-900 block mb-0.5">💼 Experience Match:</span>
+                      <p>{result.experienceMatch || "Evaluated against role requirements."}</p>
+                    </div>
+                    <div className="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100">
+                      <span className="font-semibold text-indigo-900 block mb-0.5">🎓 Degree Compatibility:</span>
+                      <p>{result.degreeMatch || "Checked against educational criteria."}</p>
+                    </div>
+                  </div>
                 </div>
 
+              </div>
+
+              {/* Key Improvements */}
+              <div className="bg-white border border-slate-200 border-t-4 border-t-amber-500 p-5 rounded-2xl shadow-xs space-y-3">
+                <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Key Improvements</h4>
+                <ul className="text-xs text-slate-600 space-y-2 leading-relaxed grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {result.improvementAdvice?.map((advice, idx) => (
+                    <li key={idx} className="flex items-start gap-2 bg-amber-50/50 p-2.5 rounded-lg border border-amber-100">
+                      <span className="text-amber-500 shrink-0 mt-0.5">💡</span>
+                      <span>{advice}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               {/* CV Rewriter Section */}
