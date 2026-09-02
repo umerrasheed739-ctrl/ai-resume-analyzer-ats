@@ -44,7 +44,7 @@ export default function ResumeAnalyzer() {
   const fetchLiveJobs = async () => {
     setLoadingJobs(true);
     try {
-      const response = await fetch('https://www.arbeitnow.com/api/job-board-api');
+      const response = await fetch('https://remoteok.com/api');
       const data = await response.json();
       if (data && data.data) {
         const formattedJobs = data.data.slice(0, 15).map(job => ({
