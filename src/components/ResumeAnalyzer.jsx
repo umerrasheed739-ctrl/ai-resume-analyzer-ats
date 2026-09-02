@@ -34,7 +34,7 @@ export default function ResumeAnalyzer() {
       const encodedQuery = encodeURIComponent(`${query} in Pakistan`);
       const url = `https://jsearch.p.rapidapi.com/search?query=${encodedQuery}&page=1&num_pages=1`;
       
-      const apiKey = import.meta.env.VITE_RAPIDAPI_KEY || 'd1c53a0041msh2e8f5d9190ff745p14a944jsn0dce13d867d0';
+      const apiKey = import.meta.env.VITE_RAPIDAPI_KEY || '0f9b614d9amshb1ff2ff5ff93cf9p14b1afjsnf8d8a25d7e31';
 
       const options = {
         method: 'GET',
@@ -526,3 +526,8 @@ export default function ResumeAnalyzer() {
     </div>
   );
 }
+
+
+
+
+
