@@ -44,23 +44,15 @@ export default function ResumeAnalyzer() {
  const fetchLiveJobs = async () => {
     setLoadingJobs(true);
     try {
-      const response = await fetch('https://remoteok.com/api');
+      const response = await fetch('https://www.arbeitnow.com/api/job-board-api');
       const data = await response.json();
-      
-      if (data && Array.isArray(data)) {
-        // Sirf un jobs ko filter karein jo Pakistan se hon ya Remote hon, baqi bahir ki cancel kar dein
-        const pakistanOrRemoteJobs = data.slice(1).filter(job => {
-          const loc = (job.location || '').toLowerCase();
-          return loc.includes('pakistan') || loc.includes('remote') || loc.includes('islamabad') || loc.includes('lahore') || loc.includes('karachi');
-        });
-
-        const formattedJobs = pakistanOrRemoteJobs.slice(0, 15).map(job => ({
-          job_title: job.position || 'Software Engineer',
-          employer_name: job.company || 'Tech Company',
-          job_description: job.description ? job.description.replace(/<[^>]*>?/gm, '') : 'Exciting tech opportunity.',
-          job_country: job.location || 'Pakistan / Remote'
+      if (data && data.data) {
+        const formattedJobs = data.data.slice(0, 15).map(job => ({
+          job_title: job.title,
+          employer_name: job.company_name,
+          job_description: job.description.replace(/<[^>]*>?/gm, ''),
+          job_country: job.location || 'Remote'
         }));
-
         setLiveJobs(formattedJobs);
       }
     } catch (error) {
@@ -69,6 +61,7 @@ export default function ResumeAnalyzer() {
       setLoadingJobs(false);
     }
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
