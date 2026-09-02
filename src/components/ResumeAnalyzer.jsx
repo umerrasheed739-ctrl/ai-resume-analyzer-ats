@@ -265,82 +265,90 @@ export default function ResumeAnalyzer() {
           {/* Results Section */}
           {result && (
             <div className="space-y-6 animate-fadeIn">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <h2 className="text-xl font-bold text-slate-900">Analysis Breakdown</h2>
-                <span className="text-xs bg-slate-200 text-slate-700 font-medium px-2.5 py-1 rounded-full">Report Ready</span>
-              </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-5 items-start">
+              {/* 1. ANALYSIS BREAKDOWN (Original Top Position) */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                  <h2 className="text-xl font-bold text-slate-900">Analysis Breakdown</h2>
+                  <span className="text-xs bg-slate-200 text-slate-700 font-medium px-2.5 py-1 rounded-full">Report Ready</span>
+                </div>
                 
-                {/* Match Score */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs text-center flex flex-col items-center justify-center min-h-[220px]">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Match Score</span>
-                  <div className="relative w-28 h-28 flex items-center justify-center">
-                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                      <path className="text-slate-100" strokeWidth="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                      <path className="text-blue-600 transition-all duration-1000 stroke-current" strokeDasharray={`${result.matchPercentage}, 100`} strokeWidth="3.5" strokeLinecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    </svg>
-                    <span className="absolute text-2xl font-extrabold text-slate-900">{result.matchPercentage}%</span>
-                  </div>
-                </div>
-
-                {/* Matched Skills */}
-                <div className="bg-white border border-slate-200 border-t-4 border-t-emerald-500 p-5 rounded-2xl shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Matched Skills</h4>
-                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{result.matchedSkills?.length || 0}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {result.matchedSkills?.map((skill, idx) => (
-                      <span key={idx} className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-xs px-2.5 py-1 rounded-md font-medium">✓ {skill}</span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Missing Keywords */}
-                <div className="bg-white border border-slate-200 border-t-4 border-t-rose-500 p-5 rounded-2xl shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Missing Keywords</h4>
-                    <span className="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{result.missingSkills?.length || 0}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {result.missingSkills?.map((skill, idx) => (
-                      <span key={idx} className="bg-rose-50 text-rose-700 border border-rose-200/60 text-xs px-2.5 py-1 rounded-md font-medium">✕ {skill}</span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Experience Match & Degree Evaluation */}
-                <div className="bg-white border border-slate-200 border-t-4 border-t-indigo-500 p-5 rounded-2xl shadow-xs space-y-3">
-                  <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Experience & Degree</h4>
-                  <div className="space-y-2 text-xs text-slate-600">
-                    <div className="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100">
-                      <span className="font-semibold text-indigo-900 block mb-0.5">💼 Experience Match:</span>
-                      <p>{result.experienceMatch || "Evaluated against role requirements."}</p>
-                    </div>
-                    <div className="bg-indigo-50/50 p-2 rounded-lg border border-indigo-100">
-                      <span className="font-semibold text-indigo-900 block mb-0.5">🎓 Degree Compatibility:</span>
-                      <p>{result.degreeMatch || "Checked against educational criteria."}</p>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-5 items-start">
+                  
+                  {/* Match Score */}
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs text-center flex flex-col items-center justify-center min-h-[220px]">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Match Score</span>
+                    <div className="relative w-28 h-28 flex items-center justify-center">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                        <path className="text-slate-100" strokeWidth="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path className="text-blue-600 transition-all duration-1000 stroke-current" strokeDasharray={`${result.matchPercentage}, 100`} strokeWidth="3.5" strokeLinecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      </svg>
+                      <span className="absolute text-2xl font-extrabold text-slate-900">{result.matchPercentage}%</span>
                     </div>
                   </div>
+
+                  {/* Matched Skills */}
+                  <div className="bg-white border border-slate-200 border-t-4 border-t-emerald-500 p-5 rounded-2xl shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Matched Skills</h4>
+                      <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{result.matchedSkills?.length || 0}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {result.matchedSkills?.map((skill, idx) => (
+                        <span key={idx} className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-xs px-2.5 py-1 rounded-md font-medium">✓ {skill}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Missing Keywords */}
+                  <div className="bg-white border border-slate-200 border-t-4 border-t-rose-500 p-5 rounded-2xl shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Missing Keywords</h4>
+                      <span className="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{result.missingSkills?.length || 0}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {result.missingSkills?.map((skill, idx) => (
+                        <span key={idx} className="bg-rose-50 text-rose-700 border border-rose-200/60 text-xs px-2.5 py-1 rounded-md font-medium">✕ {skill}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Key Improvements */}
+                  <div className="bg-white border border-slate-200 border-t-4 border-t-amber-500 p-5 rounded-2xl shadow-xs space-y-3 md:col-span-4">
+                    <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Key Improvements</h4>
+                    <ul className="text-xs text-slate-600 space-y-2 leading-relaxed grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {result.improvementAdvice?.map((advice, idx) => (
+                        <li key={idx} className="flex items-start gap-2 bg-amber-50/50 p-2.5 rounded-lg border border-amber-100">
+                          <span className="text-amber-500 shrink-0 mt-0.5">💡</span>
+                          <span>{advice}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
                 </div>
-
               </div>
 
-              {/* Key Improvements */}
-              <div className="bg-white border border-slate-200 border-t-4 border-t-amber-500 p-5 rounded-2xl shadow-xs space-y-3">
-                <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Key Improvements</h4>
-                <ul className="text-xs text-slate-600 space-y-2 leading-relaxed grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {result.improvementAdvice?.map((advice, idx) => (
-                    <li key={idx} className="flex items-start gap-2 bg-amber-50/50 p-2.5 rounded-lg border border-amber-100">
-                      <span className="text-amber-500 shrink-0 mt-0.5">💡</span>
-                      <span>{advice}</span>
-                    </li>
-                  ))}
-                </ul>
+              {/* 2. JOB REQUIREMENTS EVALUATION (Middle Position) */}
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Job Requirements Evaluation</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-100">
+                    <span className="text-[11px] font-bold text-slate-400 block mb-1">Required Experience</span>
+                    <p className="text-xs font-bold text-slate-800">{result.requiredExperience || "1 - 3 Years"}</p>
+                  </div>
+                  <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-100">
+                    <span className="text-[11px] font-bold text-slate-400 block mb-1">Your Experience</span>
+                    <p className="text-xs font-bold text-rose-600">{result.experienceMatch || "✕ Fresh / 0 Years"}</p>
+                  </div>
+                  <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-100">
+                    <span className="text-[11px] font-bold text-slate-400 block mb-1">Degree Requirement</span>
+                    <p className="text-xs font-bold text-slate-800">{result.degreeMatch || "Bachelor's in Computer Science or related field"}</p>
+                  </div>
+                </div>
               </div>
 
-              {/* CV Rewriter Section */}
+              {/* 3. CV REWRITER SECTION (Bottom Position) */}
               <div className="bg-white p-6 rounded-2xl border border-purple-200 shadow-xs space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-100 pb-3">
                   <div>
@@ -353,7 +361,7 @@ export default function ResumeAnalyzer() {
                   <span className={`text-xs font-bold px-3 py-1 rounded-full self-start sm:self-auto ${
                     isPro ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-700'
                   }`}>
-                    {isPro ? '✨ Pro Plan Active (Unlimited)' : `${Math.max(0, 1 - regenCount)} Free Trial Available`}
+                    {isPro ? '✨ Pro Plan Active (Unlimited)' : `${Math.max(0, 1 - regenCount)} Free Trials Available`}
                   </span>
                 </div>
 
