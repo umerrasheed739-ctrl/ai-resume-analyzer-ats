@@ -83,7 +83,7 @@ export default function ResumeAnalyzer() {
     }
   };
 
-  useEffect(() => {
+ useEffect(() => {
     const savedCount = localStorage.getItem('cv_regen_count') || 0;
     const savedProStatus = localStorage.getItem('is_pro_user') === 'true';
     const savedMockCount = localStorage.getItem('mock_interview_count') || 0;
@@ -93,8 +93,6 @@ export default function ResumeAnalyzer() {
     setIsPro(savedProStatus);
     setMockInterviewCount(parseInt(savedMockCount));
     setIsMockPro(savedMockProStatus);
-
-    fetchLiveJobs('Software Engineer');
   }, []);
 
   const handleSubmit = async (e) => {
