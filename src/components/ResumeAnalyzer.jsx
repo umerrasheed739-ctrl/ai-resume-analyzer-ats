@@ -38,7 +38,6 @@ export default function ResumeAnalyzer() {
     setMockInterviewCount(parseInt(savedMockCount));
     setIsMockPro(savedMockProStatus);
 
-    // Fetch live jobs
     fetchLiveJobs();
   }, []);
 
@@ -66,7 +65,7 @@ export default function ResumeAnalyzer() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file || !jobDescription) {
-      alert("Please upload a PDF resume and select/paste the job description!");
+      alert("Please upload a PDF resume and paste the job description!");
       return;
     }
 
@@ -96,6 +95,7 @@ export default function ResumeAnalyzer() {
 
   const handleRegenerateCv = async () => {
     if (!isPro && regenCount >= 1) {
+      alert("Free Limit Reached! Upgrade to Pro for unlimited CV regenerations.");
       setShowStripeModal(true);
       return;
     }
@@ -163,8 +163,7 @@ export default function ResumeAnalyzer() {
       localStorage.setItem('mock_interview_count', newCount.toString());
     }
 
-    const encodedJD = encodeURIComponent(jobDescription || '');
-    window.open(`https://ai-mock-interview-frontend-six.vercel.app/?jd=${encodedJD}`, '_blank');
+    window.open('https://ai-mock-interview-frontend-six.vercel.app/', '_blank');
   };
 
   const handleMockPaymentSuccess = () => {
@@ -172,9 +171,7 @@ export default function ResumeAnalyzer() {
     setIsMockPro(true);
     localStorage.setItem('is_mock_pro_user', 'true');
     setShowMockStripeModal(false);
-    
-    const encodedJD = encodeURIComponent(jobDescription || '');
-    window.open(`https://ai-mock-interview-frontend-six.vercel.app/?jd=${encodedJD}`, '_blank');
+    window.open('https://ai-mock-interview-frontend-six.vercel.app/', '_blank');
   };
 
   return (
@@ -222,7 +219,7 @@ export default function ResumeAnalyzer() {
             <p className="text-slate-500 text-sm max-w-md mx-auto">Instant ATS matching score, live market jobs & AI-powered bullet generator.</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col">
               <span className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1.5">Step 1</span>
               <h3 className="font-semibold text-slate-800 mb-2">Upload Resume (PDF)</h3>
@@ -243,12 +240,12 @@ export default function ResumeAnalyzer() {
 
             <div className="flex flex-col">
               <span className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1.5">Step 2</span>
-              <h3 className="font-semibold text-slate-800 mb-2">Job Description</h3>
+              <h3 className="font-semibold text-slate-800 mb-2">Paste Job Description</h3>
               <textarea 
                 rows="6"
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-                placeholder="Click any job from the sidebar or paste job description here..."
+                placeholder="Click any job from sidebar or paste details..."
                 className="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-hidden flex-1 resize-none text-xs text-slate-700 leading-relaxed placeholder:text-slate-400"
               ></textarea>
             </div>
@@ -262,93 +259,119 @@ export default function ResumeAnalyzer() {
             </button>
           </form>
 
-          {/* Results Section */}
+          {/* Dashboard Results Section */}
           {result && (
             <div className="space-y-6 animate-fadeIn">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <h2 className="text-xl font-bold text-slate-900">Analysis Breakdown</h2>
+                <span className="text-xs bg-slate-200 text-slate-700 font-medium px-2.5 py-1 rounded-full">Report Ready</span>
+              </div>
               
-              {/* 1. ANALYSIS BREAKDOWN (Original Top Position) */}
-              <div className="space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                  <h2 className="text-xl font-bold text-slate-900">Analysis Breakdown</h2>
-                  <span className="text-xs bg-slate-200 text-slate-700 font-medium px-2.5 py-1 rounded-full">Report Ready</span>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-5 items-start">
                 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-5 items-start">
-                  
-                  {/* Match Score */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs text-center flex flex-col items-center justify-center min-h-[220px]">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Match Score</span>
-                    <div className="relative w-28 h-28 flex items-center justify-center">
-                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                        <path className="text-slate-100" strokeWidth="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path className="text-blue-600 transition-all duration-1000 stroke-current" strokeDasharray={`${result.matchPercentage}, 100`} strokeWidth="3.5" strokeLinecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                      </svg>
-                      <span className="absolute text-2xl font-extrabold text-slate-900">{result.matchPercentage}%</span>
-                    </div>
-                  </div>
-
-                  {/* Matched Skills */}
-                  <div className="bg-white border border-slate-200 border-t-4 border-t-emerald-500 p-5 rounded-2xl shadow-xs space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Matched Skills</h4>
-                      <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{result.matchedSkills?.length || 0}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {result.matchedSkills?.map((skill, idx) => (
-                        <span key={idx} className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-xs px-2.5 py-1 rounded-md font-medium">✓ {skill}</span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Missing Keywords */}
-                  <div className="bg-white border border-slate-200 border-t-4 border-t-rose-500 p-5 rounded-2xl shadow-xs space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Missing Keywords</h4>
-                      <span className="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{result.missingSkills?.length || 0}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {result.missingSkills?.map((skill, idx) => (
-                        <span key={idx} className="bg-rose-50 text-rose-700 border border-rose-200/60 text-xs px-2.5 py-1 rounded-md font-medium">✕ {skill}</span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Key Improvements */}
-                  <div className="bg-white border border-slate-200 border-t-4 border-t-amber-500 p-5 rounded-2xl shadow-xs space-y-3 md:col-span-4">
-                    <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Key Improvements</h4>
-                    <ul className="text-xs text-slate-600 space-y-2 leading-relaxed grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {result.improvementAdvice?.map((advice, idx) => (
-                        <li key={idx} className="flex items-start gap-2 bg-amber-50/50 p-2.5 rounded-lg border border-amber-100">
-                          <span className="text-amber-500 shrink-0 mt-0.5">💡</span>
-                          <span>{advice}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* 2. JOB REQUIREMENTS EVALUATION (Middle Position) */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Job Requirements Evaluation</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-100">
-                    <span className="text-[11px] font-bold text-slate-400 block mb-1">Required Experience</span>
-                    <p className="text-xs font-bold text-slate-800">{result.requiredExperience || "1 - 3 Years"}</p>
-                  </div>
-                  <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-100">
-                    <span className="text-[11px] font-bold text-slate-400 block mb-1">Your Experience</span>
-                    <p className="text-xs font-bold text-rose-600">{result.experienceMatch || "✕ Fresh / 0 Years"}</p>
-                  </div>
-                  <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-100">
-                    <span className="text-[11px] font-bold text-slate-400 block mb-1">Degree Requirement</span>
-                    <p className="text-xs font-bold text-slate-800">{result.degreeMatch || "Bachelor's in Computer Science or related field"}</p>
+                {/* Box 1: Match Score */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs text-center flex flex-col items-center justify-center min-h-[220px]">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Match Score</span>
+                  <div className="relative w-28 h-28 flex items-center justify-center">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        className="text-slate-100"
+                        strokeWidth="3.5"
+                        stroke="currentColor"
+                        fill="none"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path
+                        className="text-blue-600 transition-all duration-1000 stroke-current"
+                        strokeDasharray={`${result.matchPercentage}, 100`}
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                        fill="none"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <span className="absolute text-2xl font-extrabold text-slate-900">{result.matchPercentage}%</span>
                   </div>
                 </div>
+
+                {/* Box 2: Matched Skills */}
+                <div className="bg-white border border-slate-200/80 border-t-4 border-t-emerald-500 p-5 rounded-2xl shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Matched Skills</h4>
+                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{result.matchedSkills?.length || 0}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {result.matchedSkills?.map((skill, idx) => (
+                      <span key={idx} className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 text-xs px-2.5 py-1 rounded-md font-medium">
+                        ✓ {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Box 3: Missing Keywords */}
+                <div className="bg-white border border-slate-200/80 border-t-4 border-t-rose-500 p-5 rounded-2xl shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Missing Keywords</h4>
+                    <span className="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{result.missingSkills?.length || 0}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {result.missingSkills?.map((skill, idx) => (
+                      <span key={idx} className="bg-rose-50 text-rose-700 border border-rose-200/60 text-xs px-2.5 py-1 rounded-md font-medium">
+                        ✕ {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Box 4: Key Improvements */}
+                <div className="bg-white border border-slate-200/80 border-t-4 border-t-amber-500 p-5 rounded-2xl shadow-xs space-y-3 md:col-span-4">
+                  <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Key Improvements</h4>
+                  <ul className="text-xs text-slate-600 space-y-2 leading-relaxed grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {result.improvementAdvice?.map((advice, idx) => (
+                      <li key={idx} className="flex items-start gap-2 bg-amber-50/50 p-2.5 rounded-lg border border-amber-100">
+                        <span className="text-amber-500 shrink-0 mt-0.5">💡</span>
+                        <span>{advice}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
               </div>
 
-              {/* 3. CV REWRITER SECTION (Bottom Position) */}
+              {/* Dynamic Box 5: Job Requirements Check */}
+              {result.requirementsCheck && (
+                <div className="bg-white border border-slate-200/80 border-t-4 border-t-indigo-500 p-5 rounded-2xl shadow-xs space-y-3">
+                  <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
+                    Job Requirements Evaluation
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div className="flex flex-col justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 gap-1">
+                      <span className="text-slate-500 text-[11px] font-medium">Required Experience</span>
+                      <span className="font-bold text-slate-900 text-xs">
+                        {result.requirementsCheck.requiredExperience || "Not Specified"}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 gap-1">
+                      <span className="text-slate-500 text-[11px] font-medium">Your Experience</span>
+                      <span className={`font-bold text-xs ${result.requirementsCheck.experienceMatch ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {result.requirementsCheck.experienceMatch ? '✓ ' : '✕ '}
+                        {result.requirementsCheck.candidateExperience || "0 Years"}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 gap-1">
+                      <span className="text-slate-500 text-[11px] font-medium">Degree Requirement</span>
+                      <span className="font-bold text-slate-900 text-xs leading-snug break-words">
+                        {result.requirementsCheck.requiredDegree || "Not Specified"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Freemium / Pro CV Regeneration Section */}
               <div className="bg-white p-6 rounded-2xl border border-purple-200 shadow-xs space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-purple-100 pb-3">
                   <div>
@@ -361,7 +384,7 @@ export default function ResumeAnalyzer() {
                   <span className={`text-xs font-bold px-3 py-1 rounded-full self-start sm:self-auto ${
                     isPro ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-700'
                   }`}>
-                    {isPro ? '✨ Pro Plan Active (Unlimited)' : `${Math.max(0, 1 - regenCount)} Free Trials Available`}
+                    {isPro ? '✨ Pro Plan Active (Unlimited)' : `${Math.max(0, 1 - regenCount)} Free Trial Available`}
                   </span>
                 </div>
 
@@ -392,7 +415,12 @@ export default function ResumeAnalyzer() {
                   <div className="mt-4 p-4 border border-purple-200 rounded-xl bg-slate-50 space-y-3">
                     <div className="flex justify-between items-center border-b pb-2">
                       <h4 className="font-bold text-xs text-slate-800">Complete Pro Upgrade Payment</h4>
-                      <button onClick={() => setShowStripeModal(false)} className="text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer">✕ Close</button>
+                      <button 
+                        onClick={() => setShowStripeModal(false)}
+                        className="text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer"
+                      >
+                        ✕ Close
+                      </button>
                     </div>
                     <Elements stripe={stripePromise}>
                       <CheckoutForm onSuccess={handlePaymentSuccess} />
@@ -404,7 +432,10 @@ export default function ResumeAnalyzer() {
                   <div className="mt-4 space-y-2">
                     <div className="flex justify-between items-center">
                       <h4 className="font-bold text-slate-800 text-xs">Tailored CV Bullet Points:</h4>
-                      <button onClick={handleCopy} className="text-xs text-purple-600 font-semibold hover:underline flex items-center gap-1 cursor-pointer">
+                      <button 
+                        onClick={handleCopy}
+                        className="text-xs text-purple-600 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                      >
                         {copied ? '✓ Copied Clean Text!' : '📋 Copy to Clipboard'}
                       </button>
                     </div>
@@ -415,7 +446,7 @@ export default function ResumeAnalyzer() {
                 )}
               </div>
 
-              {/* AI Mock Interview Section */}
+              {/* AI Mock Interview Section with Freemium Limit & Stripe Modal */}
               <div className="mt-6 pt-4 border-t border-purple-100 space-y-3 bg-blue-50/40 p-4 rounded-xl border border-blue-100">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                   <div>
@@ -438,7 +469,12 @@ export default function ResumeAnalyzer() {
                   <div className="mt-4 p-4 border border-blue-200 rounded-xl bg-slate-50 space-y-3">
                     <div className="flex justify-between items-center border-b pb-2">
                       <h4 className="font-bold text-xs text-slate-800">Unlock Unlimited AI Mock Interviews ($2.00)</h4>
-                      <button onClick={() => setShowMockStripeModal(false)} className="text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer">✕ Close</button>
+                      <button 
+                        onClick={() => setShowMockStripeModal(false)}
+                        className="text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer"
+                      >
+                        ✕ Close
+                      </button>
                     </div>
                     <Elements stripe={stripePromise}>
                       <CheckoutForm onSuccess={handleMockPaymentSuccess} />
