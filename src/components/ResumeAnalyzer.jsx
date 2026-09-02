@@ -78,8 +78,7 @@ export default function ResumeAnalyzer() {
     setLoadingJobs(false);
   }
 };
-
-useEffect(() => {
+ useEffect(() => {
     const savedCount = localStorage.getItem('cv_regen_count') || 0;
     const savedProStatus = localStorage.getItem('is_pro_user') === 'true';
     const savedMockCount = localStorage.getItem('mock_interview_count') || 0;
@@ -263,10 +262,20 @@ useEffect(() => {
         {/* MAIN CONTENT AREA */}
         <div className="lg:col-span-3 space-y-8">
           
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">JobLens 360</h1>
-            <p className="text-slate-500 text-sm max-w-md mx-auto">Live Job Finder, ATS Scanner & AI Interview Hub</p>
-          </div>
+          <div className="text-center space-y-2 flex flex-col items-center">
+  {/* JobLens 360 Logo */}
+  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/25 text-white mb-1">
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="11" cy="11" r="7" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M21 21l-4.35-4.35" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M11 4a7 7 0 017 7" strokeLinecap="round" strokeLinejoin="round" className="opacity-60"/>
+    </svg>
+  </div>
+  <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+    JobLens <span className="text-blue-600">360</span>
+  </h1>
+  <p className="text-slate-500 text-sm max-w-md mx-auto">Live Job Finder, ATS Scanner & AI Interview Hub</p>
+</div>
 
           <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col">
