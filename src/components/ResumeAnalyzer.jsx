@@ -28,44 +28,44 @@ export default function ResumeAnalyzer() {
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [jobSearchQuery, setJobSearchQuery] = useState('Software Engineer');
 
-  const fetchLiveJobs = async (query = 'Software Engineer') => {
-    setLoadingJobs(true);
-    try {
-      const encodedQuery = encodeURIComponent(`${query} in Pakistan`);
-      const url = `https://jsearch.p.rapidapi.com/search?query=${encodedQuery}&page=1&num_pages=1`;
-      
-      const apiKey = import.meta.env.VITE_RAPIDAPI_KEY || '0f9b614d9amshb1ff2ff5ff93cf9p14b1afjsnf8d8a25d7e31';
+ const fetchLiveJobs = async (query = 'Software Engineer') => {
+  setLoadingJobs(true);
+  try {
+    const encodedQuery = encodeURIComponent(`${query} in Pakistan`);
+    // Yahan search-v2 endpoint use karein jo aapne abhi nikala hai
+    const url = `https://jsearch.p.rapidapi.com/search-v2?query=${encodedQuery}&num_pages=1&country=pk&date_posted=all`;
+    
+    const apiKey = import.meta.env.VITE_RAPIDAPI_KEY || '0f9b614d9amshb1ff2ff5ff93cf9p14b1afjsnf8d8a25d7e31';
 
-      const options = {
-        method: 'GET',
-        headers: {
-          'x-rapidapi-key': apiKey,
-          'x-rapidapi-host': 'jsearch.p.rapidapi.com'
-        }
-      };
-
-      const response = await fetch(url, options);
-console.log("Response Status:", response.status); // Yahan status check karein (200 hai ya 403/429)
-const data = await response.json();
-console.log("API Full Response:", data); // Yahan pura response dekhlein
-      
-      if (data && data.data) {
-        const formattedJobs = data.data.slice(0, 15).map(job => ({
-          job_title: job.job_title || 'Software Engineer',
-          employer_name: job.employer_name || 'Tech Company',
-          job_description: job.job_description ? job.job_description.replace(/<[^>]*>?/gm, '') : 'Exciting tech opportunity in Pakistan.',
-          job_country: job.job_country || 'Pakistan'
-        }));
-        setLiveJobs(formattedJobs);
-      } else {
-        console.warn("API returned invalid data format:", data);
+    const options = {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-key': apiKey,
+        'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+        'Content-Type': 'application/json'
       }
-    } catch (error) {
-      console.error("Failed to fetch live jobs from JSearch:", error);
-    } finally {
-      setLoadingJobs(false);
+    };
+
+    const response = await fetch(url, options);
+    const data = await response.json();
+    
+    if (data && data.data) {
+      const formattedJobs = data.data.slice(0, 15).map(job => ({
+        job_title: job.job_title || 'Software Engineer',
+        employer_name: job.employer_name || 'Tech Company',
+        job_description: job.job_description ? job.job_description.replace(/<[^>]*>?/gm, '') : 'Exciting tech opportunity in Pakistan.',
+        job_country: job.job_country || 'Pakistan'
+      }));
+      setLiveJobs(formattedJobs);
+    } else {
+      console.warn("API returned invalid data format:", data);
     }
-  };
+  } catch (error) {
+    console.error("Failed to fetch live jobs from JSearch:", error);
+  } finally {
+    setLoadingJobs(false);
+  }
+};
 
   useEffect(() => {
     const savedCount = localStorage.getItem('cv_regen_count') || 0;
