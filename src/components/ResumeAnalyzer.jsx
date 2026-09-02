@@ -163,7 +163,11 @@ export default function ResumeAnalyzer() {
       localStorage.setItem('mock_interview_count', newCount.toString());
     }
 
-    window.open('https://ai-mock-interview-frontend-six.vercel.app/', '_blank');
+    // Job description ya role ko URL encode karke pass kar rahe hain
+    const encodedRole = encodeURIComponent(jobDescription.slice(0, 100)); // Pehle 100 characters ya role
+    const mockInterviewUrl = `https://ai-mock-interview-frontend-six.vercel.app/?role=${encodedRole}`;
+    
+    window.open(mockInterviewUrl, '_blank');
   };
 
   const handleMockPaymentSuccess = () => {
