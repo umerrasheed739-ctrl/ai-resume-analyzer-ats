@@ -26,9 +26,16 @@ export default function ResumeAnalyzer() {
   // States for Live Jobs Sidebar via JSearch API
   const [liveJobs, setLiveJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
-  const [jobSearchQuery, setJobSearchQuery] = useState('Software Engineer');
+  const [jobSearchQuery, setJobSearchQuery] = useState('');
 
-  const fetchLiveJobs = async (query = 'Software Engineer') => {
+  const fetchLiveJobs = async (query = '') => {
+    // Agar query khali ho toh search na karein aur jobs list clear kardein
+    if (!query.trim()) {
+      setLiveJobs([]);
+      setLoadingJobs(false);
+      return;
+    }
+
     setLoadingJobs(true);
     try {
       const encodedQuery = encodeURIComponent(`${query} in Pakistan`);
