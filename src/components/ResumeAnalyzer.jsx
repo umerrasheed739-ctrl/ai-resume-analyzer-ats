@@ -320,10 +320,18 @@ export default function ResumeAnalyzer() {
           {/* Dashboard Results Section */}
           {result && (
             <div className="space-y-6 animate-fadeIn">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <h2 className="text-xl font-bold text-slate-900">Analysis Breakdown</h2>
-                <span className="text-xs bg-slate-200 text-slate-700 font-medium px-2.5 py-1 rounded-full">Report Ready</span>
-              </div>
+             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+  <h2 className="text-xl font-bold text-slate-900">Analysis Breakdown</h2>
+  <div className="flex items-center gap-2">
+    <button 
+      onClick={() => window.print()}
+      className="print:hidden bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-xs cursor-pointer flex items-center gap-1.5"
+    >
+      <span>📥</span> Download PDF
+    </button>
+    <span className="text-xs bg-slate-200 text-slate-700 font-medium px-2.5 py-1 rounded-full">Report Ready</span>
+  </div>
+</div>
               
               <div className="grid grid-cols-1 md:grid-cols-4 gap-5 items-start">
                 
