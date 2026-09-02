@@ -32,7 +32,6 @@ export default function ResumeAnalyzer() {
   setLoadingJobs(true);
   try {
     const encodedQuery = encodeURIComponent(`${query} in Pakistan`);
-    // Yahan search-v2 endpoint use karein jo aapne abhi nikala hai
     const url = `https://jsearch.p.rapidapi.com/search-v2?query=${encodedQuery}&num_pages=1&country=pk&date_posted=all`;
     
     const apiKey = import.meta.env.VITE_RAPIDAPI_KEY || '0f9b614d9amshb1ff2ff5ff93cf9p14b1afjsnf8d8a25d7e31';
@@ -49,8 +48,13 @@ export default function ResumeAnalyzer() {
     const response = await fetch(url, options);
     const data = await response.json();
     
-    if (data && data.data) {
-      const formattedJobs = data.data.slice(0, 15).map(job => ({
+    console.log("API Full Response:", data);
+
+    // Safety check taake slice error na aaye agar data array na ho
+    const jobsList = Array.isArray(data?.data) ? data.data : [];
+    
+    if (jobsList.length > 0) {
+      const formattedJobs = jobsList.slice(0, 15).map(job => ({
         job_title: job.job_title || 'Software Engineer',
         employer_name: job.employer_name || 'Tech Company',
         job_description: job.job_description ? job.job_description.replace(/<[^>]*>?/gm, '') : 'Exciting tech opportunity in Pakistan.',
@@ -58,7 +62,8 @@ export default function ResumeAnalyzer() {
       }));
       setLiveJobs(formattedJobs);
     } else {
-      console.warn("API returned invalid data format:", data);
+      console.warn("API returned invalid data format or empty list:", data);
+      setLiveJobs([]);
     }
   } catch (error) {
     console.error("Failed to fetch live jobs from JSearch:", error);
