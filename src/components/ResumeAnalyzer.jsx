@@ -267,11 +267,10 @@ export default function ResumeAnalyzer() {
                 <span className="text-xs bg-slate-200 text-slate-700 font-medium px-2.5 py-1 rounded-full">Report Ready</span>
               </div>
               
-              {/* Top Row: Match Score & Matched Skills (Balanced Grid) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-5 items-start">
                 
                 {/* Box 1: Match Score */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs text-center flex flex-col items-center justify-center">
+                <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs text-center flex flex-col items-center justify-center min-h-[220px]">
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Match Score</span>
                   <div className="relative w-28 h-28 flex items-center justify-center">
                     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
@@ -310,11 +309,6 @@ export default function ResumeAnalyzer() {
                   </div>
                 </div>
 
-              </div>
-
-              {/* Middle Row: Missing Keywords & Key Improvements side by side or stacked cleanly */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
-                
                 {/* Box 3: Missing Keywords */}
                 <div className="bg-white border border-slate-200/80 border-t-4 border-t-rose-500 p-5 rounded-2xl shadow-xs space-y-3">
                   <div className="flex items-center justify-between">
@@ -331,9 +325,9 @@ export default function ResumeAnalyzer() {
                 </div>
 
                 {/* Box 4: Key Improvements */}
-                <div className="bg-white border border-slate-200/80 border-t-4 border-t-amber-500 p-5 rounded-2xl shadow-xs space-y-3">
+                <div className="bg-white border border-slate-200/80 border-t-4 border-t-amber-500 p-5 rounded-2xl shadow-xs space-y-3 md:col-span-4">
                   <h4 className="font-bold text-slate-800 text-xs uppercase tracking-wider">Key Improvements</h4>
-                  <ul className="text-xs text-slate-600 space-y-2 leading-relaxed">
+                  <ul className="text-xs text-slate-600 space-y-2 leading-relaxed grid grid-cols-1 md:grid-cols-2 gap-3">
                     {result.improvementAdvice?.map((advice, idx) => (
                       <li key={idx} className="flex items-start gap-2 bg-amber-50/50 p-2.5 rounded-lg border border-amber-100">
                         <span className="text-amber-500 shrink-0 mt-0.5">💡</span>
