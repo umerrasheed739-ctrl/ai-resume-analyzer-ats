@@ -45,7 +45,9 @@ export default function ResumeAnalyzer() {
       };
 
       const response = await fetch(url, options);
-      const data = await response.json();
+console.log("Response Status:", response.status); // Yahan status check karein (200 hai ya 403/429)
+const data = await response.json();
+console.log("API Full Response:", data); // Yahan pura response dekhlein
       
       if (data && data.data) {
         const formattedJobs = data.data.slice(0, 15).map(job => ({
