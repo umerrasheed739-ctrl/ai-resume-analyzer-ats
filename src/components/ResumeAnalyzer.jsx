@@ -34,10 +34,12 @@ export default function ResumeAnalyzer() {
       const encodedQuery = encodeURIComponent(`${query} in Pakistan`);
       const url = `https://jsearch.p.rapidapi.com/search?query=${encodedQuery}&page=1&num_pages=1`;
       
+      const apiKey = import.meta.env.VITE_RAPIDAPI_KEY || 'd1c53a0041msh2e8f5d9190ff745p14a944jsn0dce13d867d0';
+
       const options = {
         method: 'GET',
         headers: {
-          'x-rapidapi-key': import.meta.env.VITE_RAPIDAPI_KEY || 'd1c53a0041msh2e8f5d9190ff745p14a944jsn0dce13d867d0',
+          'x-rapidapi-key': apiKey,
           'x-rapidapi-host': 'jsearch.p.rapidapi.com'
         }
       };
@@ -53,6 +55,8 @@ export default function ResumeAnalyzer() {
           job_country: job.job_country || 'Pakistan'
         }));
         setLiveJobs(formattedJobs);
+      } else {
+        console.warn("API returned invalid data format:", data);
       }
     } catch (error) {
       console.error("Failed to fetch live jobs from JSearch:", error);
