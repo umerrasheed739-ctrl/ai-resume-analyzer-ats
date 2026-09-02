@@ -44,14 +44,19 @@ export default function ResumeAnalyzer() {
         'Content-Type': 'application/json'
       }
     };
-
-    const response = await fetch(url, options);
+const response = await fetch(url, options);
     const data = await response.json();
     
     console.log("API Full Response:", data);
 
-    // Safety check taake slice error na aaye agar data array na ho
-    const jobsList = Array.isArray(data?.data) ? data.data : [];
+    // Yahan check karein ke data.data khud array hai ya uske andar koi property hai (jaise data.data.jobs ya data.data values)
+    let jobsList = [];
+    if (Array.isArray(data?.data)) {
+      jobsList = data.data;
+    } else if (data?.data && typeof data.data === 'object') {
+      // Agar data.data object hai toh uski values ya internal array ko find karein
+      jobsList = Object.values(data.data).find(val => Array.isArray(val)) || data?.data?.jobs || [];
+    }
     
     if (jobsList.length > 0) {
       const formattedJobs = jobsList.slice(0, 15).map(job => ({
@@ -62,9 +67,10 @@ export default function ResumeAnalyzer() {
       }));
       setLiveJobs(formattedJobs);
     } else {
-      console.warn("API returned invalid data format or empty list:", data);
+      console.warn("API returned empty or unrecognized job format:", data);
       setLiveJobs([]);
     }
+    
   } catch (error) {
     console.error("Failed to fetch live jobs from JSearch:", error);
   } finally {
