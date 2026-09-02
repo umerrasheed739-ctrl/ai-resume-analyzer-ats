@@ -212,6 +212,7 @@ export default function ResumeAnalyzer() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
         
         {/* SIDEBAR: Live Job Postings in Pakistan */}
+        
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs h-fit space-y-4 lg:col-span-1">
           <div className="border-b pb-3 space-y-2">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
@@ -258,6 +259,7 @@ export default function ResumeAnalyzer() {
             </div>
           )}
         </div>
+        
 
         {/* MAIN CONTENT AREA */}
         <div className="lg:col-span-3 space-y-8">
@@ -324,13 +326,14 @@ export default function ResumeAnalyzer() {
              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
   <h2 className="text-xl font-bold text-slate-900">Analysis Breakdown</h2>
   <div className="flex items-center gap-2">
+    <span className="print:hidden text-xs bg-slate-200 text-slate-700 font-medium px-2.5 py-1 rounded-full">Report Ready</span>
     <button 
       onClick={() => window.print()}
       className="print:hidden bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-xs cursor-pointer flex items-center gap-1.5"
     >
       <span>📥</span> Download PDF
     </button>
-    <span className="print:hidden text-xs bg-slate-200 text-slate-700 font-medium px-2.5 py-1 rounded-full">Report Ready</span>
+    
   </div>
 </div>
               
