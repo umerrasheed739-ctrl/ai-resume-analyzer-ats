@@ -41,16 +41,19 @@ export default function ResumeAnalyzer() {
     fetchLiveJobs();
   }, []);
 
-  const fetchLiveJobs = async () => {
+ const fetchLiveJobs = async () => {
     setLoadingJobs(true);
     try {
       const response = await fetch('https://remoteok.com/api');
       const data = await response.json();
-      if (data && data.data) {
-        const formattedJobs = data.data.slice(0, 15).map(job => ({
-          job_title: job.title,
-          employer_name: job.company_name,
-          job_description: job.description.replace(/<[^>]*>?/gm, ''),
+      
+      // Remote OK API returns a direct array where index 0 is metadata, so we check if it's an array
+      if (data && Array.isArray(data)) {
+        // Skip index 0 (metadata) and map the rest
+        const formattedJobs = data.slice(1, 16).map(job => ({
+          job_title: job.position || 'Software Engineer',
+          employer_name: job.company || 'Remote Company',
+          job_description: job.description ? job.description.replace(/<[^>]*>?/gm, '') : 'Remote tech opportunity.',
           job_country: job.location || 'Remote'
         }));
         setLiveJobs(formattedJobs);
