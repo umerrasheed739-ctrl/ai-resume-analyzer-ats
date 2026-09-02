@@ -23,9 +23,43 @@ export default function ResumeAnalyzer() {
   const [isMockPro, setIsMockPro] = useState(false);
   const [showMockStripeModal, setShowMockStripeModal] = useState(false);
 
-  // States for Live Jobs Sidebar via Arbeitnow API
+  // States for Live Jobs Sidebar via JSearch API
   const [liveJobs, setLiveJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
+  const [jobSearchQuery, setJobSearchQuery] = useState('Software Engineer');
+
+  const fetchLiveJobs = async (query = 'Software Engineer') => {
+    setLoadingJobs(true);
+    try {
+      const encodedQuery = encodeURIComponent(`${query} in Pakistan`);
+      const url = `https://jsearch.p.rapidapi.com/search?query=${encodedQuery}&page=1&num_pages=1`;
+      
+      const options = {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-key': import.meta.env.VITE_RAPIDAPI_KEY || 'd1c53a0041msh2e8f5d9190ff745p14a944jsn0dce13d867d0',
+          'x-rapidapi-host': 'jsearch.p.rapidapi.com'
+        }
+      };
+
+      const response = await fetch(url, options);
+      const data = await response.json();
+      
+      if (data && data.data) {
+        const formattedJobs = data.data.slice(0, 15).map(job => ({
+          job_title: job.job_title || 'Software Engineer',
+          employer_name: job.employer_name || 'Tech Company',
+          job_description: job.job_description ? job.job_description.replace(/<[^>]*>?/gm, '') : 'Exciting tech opportunity in Pakistan.',
+          job_country: job.job_country || 'Pakistan'
+        }));
+        setLiveJobs(formattedJobs);
+      }
+    } catch (error) {
+      console.error("Failed to fetch live jobs from JSearch:", error);
+    } finally {
+      setLoadingJobs(false);
+    }
+  };
 
   useEffect(() => {
     const savedCount = localStorage.getItem('cv_regen_count') || 0;
@@ -38,30 +72,8 @@ export default function ResumeAnalyzer() {
     setMockInterviewCount(parseInt(savedMockCount));
     setIsMockPro(savedMockProStatus);
 
-    fetchLiveJobs();
+    fetchLiveJobs('Software Engineer');
   }, []);
-
- const fetchLiveJobs = async () => {
-    setLoadingJobs(true);
-    try {
-      const response = await fetch('https://www.arbeitnow.com/api/job-board-api');
-      const data = await response.json();
-      if (data && data.data) {
-        const formattedJobs = data.data.slice(0, 15).map(job => ({
-          job_title: job.title,
-          employer_name: job.company_name,
-          job_description: job.description.replace(/<[^>]*>?/gm, ''),
-          job_country: job.location || 'Remote'
-        }));
-        setLiveJobs(formattedJobs);
-      }
-    } catch (error) {
-      console.error("Failed to fetch live jobs:", error);
-    } finally {
-      setLoadingJobs(false);
-    }
-  };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -164,8 +176,7 @@ export default function ResumeAnalyzer() {
       localStorage.setItem('mock_interview_count', newCount.toString());
     }
 
-    // Job description ya role ko URL encode karke pass kar rahe hain
-    const encodedRole = encodeURIComponent(jobDescription.slice(0, 100)); // Pehle 100 characters ya role
+    const encodedRole = encodeURIComponent(jobDescription.slice(0, 100));
     const mockInterviewUrl = `https://ai-mock-interview-frontend-six.vercel.app/?role=${encodedRole}`;
     
     window.open(mockInterviewUrl, '_blank');
@@ -183,19 +194,34 @@ export default function ResumeAnalyzer() {
     <div className="min-h-screen bg-slate-50 text-slate-800 p-6 font-sans">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
         
-        {/* SIDEBAR: Live Job Postings from Arbeitnow API */}
+        {/* SIDEBAR: Live Job Postings in Pakistan */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs h-fit space-y-4 lg:col-span-1">
-          <div className="border-b pb-3">
+          <div className="border-b pb-3 space-y-2">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-              <span>💼</span> Live Job Postings
+              <span>🇵🇰</span> Live Jobs in Pakistan
             </h3>
-            <p className="text-[11px] text-slate-400 mt-0.5">Click any job to auto-load its JD.</p>
+            <div className="flex gap-1.5">
+              <input 
+                type="text" 
+                value={jobSearchQuery}
+                onChange={(e) => setJobSearchQuery(e.target.value)}
+                placeholder="e.g. Flutter, React, Python"
+                className="w-full text-xs p-2 border border-slate-200 rounded-lg outline-hidden focus:border-blue-500"
+              />
+              <button 
+                onClick={() => fetchLiveJobs(jobSearchQuery)}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg font-bold shrink-0 cursor-pointer"
+              >
+                Search
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-400">Click any job to auto-load its JD.</p>
           </div>
 
           {loadingJobs ? (
-            <p className="text-xs text-slate-400 text-center py-6">Loading live market jobs...</p>
+            <p className="text-xs text-slate-400 text-center py-6">Fetching live jobs from Pakistan...</p>
           ) : (
-            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
               {liveJobs.map((job, idx) => (
                 <div 
                   key={idx} 
@@ -204,8 +230,8 @@ export default function ResumeAnalyzer() {
                 >
                   <div className="flex justify-between items-start">
                     <h4 className="font-bold text-xs text-slate-800 line-clamp-1">{job.job_title}</h4>
-                    <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded-md shrink-0">
-                      {job.job_country || 'Remote'}
+                    <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded-md shrink-0">
+                      {job.job_country || 'Pakistan'}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500 font-medium">{job.employer_name}</p>
@@ -404,7 +430,7 @@ export default function ResumeAnalyzer() {
                 ) : (
                   <div className="bg-purple-50/50 border border-purple-100 p-4 rounded-xl flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                     <div>
-                      <p className="font-bold text-purple-900 text-xs">🔒 Free Trial Limit Reached</p>
+                      <p className="font-bold text-purple-905 text-xs">🔒 Free Trial Limit Reached</p>
                       <p className="text-xs text-slate-500 mt-0.5">Upgrade to Pro to get unlimited AI CV rewrites.</p>
                     </div>
                     <button 
