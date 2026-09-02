@@ -47,15 +47,20 @@ export default function ResumeAnalyzer() {
       const response = await fetch('https://remoteok.com/api');
       const data = await response.json();
       
-      // Remote OK API returns a direct array where index 0 is metadata, so we check if it's an array
       if (data && Array.isArray(data)) {
-        // Skip index 0 (metadata) and map the rest
-        const formattedJobs = data.slice(1, 16).map(job => ({
+        // Sirf un jobs ko filter karein jo Pakistan se hon ya Remote hon, baqi bahir ki cancel kar dein
+        const pakistanOrRemoteJobs = data.slice(1).filter(job => {
+          const loc = (job.location || '').toLowerCase();
+          return loc.includes('pakistan') || loc.includes('remote') || loc.includes('islamabad') || loc.includes('lahore') || loc.includes('karachi');
+        });
+
+        const formattedJobs = pakistanOrRemoteJobs.slice(0, 15).map(job => ({
           job_title: job.position || 'Software Engineer',
-          employer_name: job.company || 'Remote Company',
-          job_description: job.description ? job.description.replace(/<[^>]*>?/gm, '') : 'Remote tech opportunity.',
-          job_country: job.location || 'Remote'
+          employer_name: job.company || 'Tech Company',
+          job_description: job.description ? job.description.replace(/<[^>]*>?/gm, '') : 'Exciting tech opportunity.',
+          job_country: job.location || 'Pakistan / Remote'
         }));
+
         setLiveJobs(formattedJobs);
       }
     } catch (error) {
