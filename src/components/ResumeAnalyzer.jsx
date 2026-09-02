@@ -28,55 +28,53 @@ export default function ResumeAnalyzer() {
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [jobSearchQuery, setJobSearchQuery] = useState('Software Engineer');
 
- const fetchLiveJobs = async (query = 'Software Engineer') => {
-  setLoadingJobs(true);
-  try {
-    const encodedQuery = encodeURIComponent(`${query} in Pakistan`);
-    const url = `https://jsearch.p.rapidapi.com/search-v2?query=${encodedQuery}&num_pages=1&country=pk&date_posted=all`;
-    
-    const apiKey = import.meta.env.VITE_RAPIDAPI_KEY || '0f9b614d9amshb1ff2ff5ff93cf9p14b1afjsnf8d8a25d7e31';
+  const fetchLiveJobs = async (query = 'Software Engineer') => {
+    setLoadingJobs(true);
+    try {
+      const encodedQuery = encodeURIComponent(`${query} in Pakistan`);
+      const url = `https://jsearch.p.rapidapi.com/search-v2?query=${encodedQuery}&num_pages=1&country=pk&date_posted=all`;
+      
+      const apiKey = import.meta.env.VITE_RAPIDAPI_KEY || '0f9b614d9amshb1ff2ff5ff93cf9p14b1afjsnf8d8a25d7e31';
 
-    const options = {
-      method: 'GET',
-      headers: {
-        'x-rapidapi-key': apiKey,
-        'x-rapidapi-host': 'jsearch.p.rapidapi.com',
-        'Content-Type': 'application/json'
+      const options = {
+        method: 'GET',
+        headers: {
+          'x-rapidapi-key': apiKey,
+          'x-rapidapi-host': 'jsearch.p.rapidapi.com',
+          'Content-Type': 'application/json'
+        }
+      };
+      const response = await fetch(url, options);
+      const data = await response.json();
+      
+      console.log("API Full Response:", data);
+
+      let jobsList = [];
+      if (Array.isArray(data?.data)) {
+        jobsList = data.data;
+      } else if (data?.data && typeof data.data === 'object') {
+        jobsList = Object.values(data.data).find(val => Array.isArray(val)) || data?.data?.jobs || [];
       }
-    };
-const response = await fetch(url, options);
-    const data = await response.json();
-    
-    console.log("API Full Response:", data);
-
-    // Yahan check karein ke data.data khud array hai ya uske andar koi property hai (jaise data.data.jobs ya data.data values)
-    let jobsList = [];
-    if (Array.isArray(data?.data)) {
-      jobsList = data.data;
-    } else if (data?.data && typeof data.data === 'object') {
-      // Agar data.data object hai toh uski values ya internal array ko find karein
-      jobsList = Object.values(data.data).find(val => Array.isArray(val)) || data?.data?.jobs || [];
+      
+      if (jobsList.length > 0) {
+        const formattedJobs = jobsList.slice(0, 15).map(job => ({
+          job_title: job.job_title || 'Software Engineer',
+          employer_name: job.employer_name || 'Tech Company',
+          job_description: job.job_description ? job.job_description.replace(/<[^>]*>?/gm, '') : 'Exciting tech opportunity in Pakistan.',
+          job_country: job.job_country || 'Pakistan'
+        }));
+        setLiveJobs(formattedJobs);
+      } else {
+        console.warn("API returned empty or unrecognized job format:", data);
+        setLiveJobs([]);
+      }
+      
+    } catch (error) {
+      console.error("Failed to fetch live jobs from JSearch:", error);
+    } finally {
+      setLoadingJobs(false);
     }
-    
-    if (jobsList.length > 0) {
-      const formattedJobs = jobsList.slice(0, 15).map(job => ({
-        job_title: job.job_title || 'Software Engineer',
-        employer_name: job.employer_name || 'Tech Company',
-        job_description: job.job_description ? job.job_description.replace(/<[^>]*>?/gm, '') : 'Exciting tech opportunity in Pakistan.',
-        job_country: job.job_country || 'Pakistan'
-      }));
-      setLiveJobs(formattedJobs);
-    } else {
-      console.warn("API returned empty or unrecognized job format:", data);
-      setLiveJobs([]);
-    }
-    
-  } catch (error) {
-    console.error("Failed to fetch live jobs from JSearch:", error);
-  } finally {
-    setLoadingJobs(false);
-  }
-};
+  };
 
   useEffect(() => {
     const savedCount = localStorage.getItem('cv_regen_count') || 0;
@@ -263,8 +261,8 @@ const response = await fetch(url, options);
         <div className="lg:col-span-3 space-y-8">
           
           <div className="text-center space-y-2">
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">AI Resume Analyzer & Job Matcher</h1>
-            <p className="text-slate-500 text-sm max-w-md mx-auto">Instant ATS matching score, live market jobs & AI-powered bullet generator.</p>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">JobLens 360</h1>
+            <p className="text-slate-500 text-sm max-w-md mx-auto">Live Job Finder, ATS Scanner & AI Interview Hub</p>
           </div>
 
           <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -539,8 +537,3 @@ const response = await fetch(url, options);
     </div>
   );
 }
-
-
-
-
-
