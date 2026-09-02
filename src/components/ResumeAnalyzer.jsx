@@ -320,6 +320,7 @@ export default function ResumeAnalyzer() {
           {/* Dashboard Results Section */}
           {result && (
             <div className="space-y-6 animate-fadeIn">
+
              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
   <h2 className="text-xl font-bold text-slate-900">Analysis Breakdown</h2>
   <div className="flex items-center gap-2">
@@ -329,7 +330,7 @@ export default function ResumeAnalyzer() {
     >
       <span>📥</span> Download PDF
     </button>
-    <span className="text-xs bg-slate-200 text-slate-700 font-medium px-2.5 py-1 rounded-full">Report Ready</span>
+    <span className="print:hidden text-xs bg-slate-200 text-slate-700 font-medium px-2.5 py-1 rounded-full">Report Ready</span>
   </div>
 </div>
               
